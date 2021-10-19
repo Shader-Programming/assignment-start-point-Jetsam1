@@ -5,6 +5,7 @@ out vec4 FragColor;
 in vec3 normal;
 in vec3 WSpos;
 
+
 uniform vec3 lightCol;
 uniform vec3 lightDirection;
 uniform vec3 objectCol;
@@ -28,8 +29,9 @@ void main()
    // vec3 reflectDir = reflect(lightDirection,norm);
    vec3 halfDir = normalize(lightDirection+viewDir);
    //float specularFactor = dot(viewDir,reflectDir);
-   float specularFactor=dot(halfDir,normal);
-   specularFactor = max(specularFactor,0.0);
+   float specularFactor=dot(halfDir,norm);
+  
+  specularFactor = max(specularFactor,0.0);
    specularFactor = pow(specularFactor,shine);
 
 

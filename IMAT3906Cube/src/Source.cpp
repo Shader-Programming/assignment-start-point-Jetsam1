@@ -92,7 +92,12 @@ unsigned int cubeIndices[] = {
 	15,13,14,
 
 	23,22,21,
-	23,21,20
+	23,21,20,
+
+	19,18,17,
+	19,17,16
+
+
 
 };
 
@@ -198,6 +203,7 @@ int main()
 	shader.setVec3("lightCol", lightColour);
 	shader.setVec3("lightDirection", lightDir);
 
+	glEnable(GL_DEPTH_TEST);
 
 	while (!glfwWindowShouldClose(window))
 	{
