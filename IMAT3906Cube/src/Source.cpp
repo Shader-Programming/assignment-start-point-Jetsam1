@@ -15,6 +15,17 @@
 #include <iostream>
 #include <numeric>
 
+struct pointLight
+{
+	glm::vec3 position;
+	glm::vec3 ambientCol;
+	glm::vec3 diffuseCol;
+	glm::vec3 specCol;
+	float kC;
+	float lC;
+	float qC;
+};
+
 
 
 // settings
@@ -225,6 +236,15 @@ int main()
 		shader.setVec3("viewPos", camera.Position);
 		shader.setVec3("objectCol", cubeCol);
 
+		//setting uniforms for pointlight
+		shader.setVec3("pointLight.position", glm::vec3(1, 0, 1));
+		shader.setVec3("pointLight.ambientCol", glm::vec3(0.2349520849, 0.8563239901, 0.2733646522));
+		shader.setVec3("pointLight.diffuseCol", glm::vec3(0.3123285777, 0.6348458802, 0.2858810024));
+		shader.setVec3("pointLight.specularCol", glm::vec3(0.4622860781, 0.2729412403, 0.0480364033));
+		shader.setFloat("pointLight.kC", 1.f);
+		shader.setFloat("pointLight.lC", 0.5116701455f);
+		shader.setFloat("pointLight.qC", 0.1815987919f);  
+		
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);   // what happens if we change to GL_LINE?
 		glBindVertexArray(cubeVAO);  // bind and draw cube

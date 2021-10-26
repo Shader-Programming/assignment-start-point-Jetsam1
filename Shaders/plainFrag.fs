@@ -10,6 +10,7 @@ uniform vec3 lightCol;
 uniform vec3 lightDirection;
 uniform vec3 objectCol;
 uniform vec3 viewPos;
+uniform pointLight pLight;
 float ambientFactor = 0.5f;
 float shine = 150.f;
 float specularStrength = 0.2f;

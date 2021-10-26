@@ -148,6 +148,7 @@
     <ClInclude Include="include\Plane.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\Shader.h" />
+    <ClInclude Include="LightCasters.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp" />
