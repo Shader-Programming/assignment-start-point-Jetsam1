@@ -54,4 +54,8 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\plainFrag.fs" />
+    <None Include="..\Shaders\plainVert.vs" />
+  </ItemGroup>
 </Project>
