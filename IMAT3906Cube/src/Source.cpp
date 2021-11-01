@@ -237,6 +237,21 @@ int main()
 		shader.setFloat("pLight.ambFac", 0.05f);
 		shader.setFloat("pLight.specShine", 50.f);
 		shader.setFloat("pLight.specStrength", 0.7);
+
+		//setting uniforms for spotLight
+		shader.setVec3("sLight.pos", glm::vec3(0.f,10.f,-5.f));
+		shader.setVec3("sLight.dir", glm::vec3(0.f,-1,0.f));
+		shader.setVec3("sLight.ambCol", glm::vec3(0.f,0.f,0.f));
+		shader.setVec3("sLight.diffCol", glm::vec3(1.f,1.f,0.f));
+		shader.setVec3("sLight.specCol", glm::vec3(1.f,1.f,0.f));
+		shader.setFloat("sLight.kC", 1.f);
+		shader.setFloat("sLight.lC", 0.05f);
+		shader.setFloat("sLight.qC", 0.002f);
+		shader.setFloat("sLight.inRad", glm::cos(glm::radians(10.f)));
+		shader.setFloat("sLight.outRad", glm::cos(glm::radians(10.f)));
+		shader.setFloat("sLight.ambFac", 0.f);
+		shader.setFloat("sLight.specShine", 100.f);
+		shader.setFloat("sLight.specStrength", 0.4);
 		
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);   // what happens if we change to GL_LINE?
