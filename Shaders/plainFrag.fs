@@ -61,8 +61,8 @@ uniform vec3 viewPos;
 float ambientFactor = 0.5f;
 float shine = 150.f;
 float specularStrength = 0.2f;
-float Brightness=1.f;
-float sharpness =12.f;
+float Brightness=0.6f;
+float sharpness =50.f;
 
 //vec3 colour = vec3(0.2f,0.5f,0.6f);
 void main()
