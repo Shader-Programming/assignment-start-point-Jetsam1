@@ -80,9 +80,6 @@ void main()
 
 
 	result = dirLightRes + PointLightRes + spotLightRes +Rim;
-   //pLight 
-
-;
 
    FragColor = vec4(result,1.f);
 }

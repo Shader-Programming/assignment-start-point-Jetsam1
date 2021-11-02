@@ -18,7 +18,4 @@ void main()
     gl_Position = projection * view * model*vec4(aPos,1.0);
     WSpos= (model * vec4(aPos,1.0)).xyz;
     normal=(model*vec4(aNormals,0.0)).xyz;
-// normal=aNormals;
- 
-
 }
