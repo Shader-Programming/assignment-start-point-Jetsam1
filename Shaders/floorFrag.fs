@@ -57,8 +57,8 @@ uniform vec3 lightCol;
 uniform vec3 lightDirection;
 uniform vec3 objectCol;
 uniform vec3 viewPos;
-uniform sampler2D crateTex;
-uniform sampler2D crateSpec;
+uniform sampler2D floorTex;
+uniform sampler2D floorSpec;
 
 float ambientFactor = 0.5f;
 float shine = 150.f;
@@ -88,8 +88,8 @@ void main()
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 {
-	vec3 diffmapcol=texture(crateTex,uv).xyz;
-	vec3 specmapcol = texture(crateSpec,uv).xyz;
+	vec3 diffmapcol=texture(floorTex,uv).xyz;
+	vec3 specmapcol = texture(floorSpec,uv).xyz;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
 
     float diffuseFactor = dot(norm,-lightDirection);
@@ -115,8 +115,8 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 
 vec3 GetPointLight(vec3 norm,vec3 viewDir)
 {
-	vec3 diffmapcol=texture(crateTex,uv).xyz;
-	vec3 specmapcol = texture(crateSpec,uv).xyz;
+	vec3 diffmapcol=texture(floorTex,uv).xyz;
+	vec3 specmapcol = texture(floorSpec,uv).xyz;
 
    float dist=length(pLight.position-WSpos);
    float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
@@ -145,8 +145,8 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir)
 
 vec3 GetSpotLight(vec3 norm,vec3 viewDir)
 {
-	vec3 diffmapcol=texture(crateTex,uv).xyz;
-	vec3 specmapcol = texture(crateSpec,uv).xyz;
+	vec3 diffmapcol=texture(floorTex,uv).xyz;
+	vec3 specmapcol = texture(floorSpec,uv).xyz;
 
    float dist=length(sLight.pos-WSpos);
    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
@@ -164,7 +164,7 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir)
 	vec3 halfDir = normalize( sLight.dir + viewDir );
 	float specularFactor = dot( halfDir , norm );
 	specularFactor = max( specularFactor , 0.0 );
-	specularFactor = pow( specularFactor , sLight.specShine );                  
+	specularFactor = pow( specularFactor , sLight.specShine );
 	vec3 SpecColour = sLight.specCol  * specmapcol * specularFactor;
 	SpecColour = SpecColour * atten;
 	

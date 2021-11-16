@@ -149,6 +149,7 @@
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\Shader.h" />
     <ClInclude Include="include\stb_image.h" />
+    <ClInclude Include="include\Textures.h" />
     <ClInclude Include="LightCasters.h" />
   </ItemGroup>
   <ItemGroup>

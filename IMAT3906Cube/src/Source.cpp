@@ -29,7 +29,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-
+unsigned int loadTexture(char const* path);
+void loadTextureFiles();
 // camera
 Camera camera(glm::vec3(0,0,9));
 float lastX = SCR_WIDTH / 2.0f;
@@ -37,7 +38,8 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 //arrays
-unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO;
+unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO, crateTex,crateSpec,floorTex,floorSpec;
+
 
 // timing
 float deltaTime = 0.0f;
@@ -151,9 +153,13 @@ int main()
 		return -1;
 	}
 
+
+
 	// simple vertex and fragment shader 
 	Shader shader("..\\shaders\\plainVert.vs", "..\\shaders\\plainFrag.fs");
+	Shader floorShader("..\\shaders\\plainvert.vs", "..\\shaders\\floorFrag.fs");
 	shader.use();
+	floorShader.use();
 
 
 	/*VAO stuff  - when you are comfortable what all of this is and what it is for - abstract to classes:
@@ -208,12 +214,16 @@ int main()
 
 	glm::vec3 lightDir = glm::vec3(1.f,-0.7f,0.0f);
 	glm::vec3 lightColour = glm::vec3(0.992f, 0.3687f, 0.3255f);
-
+	loadTextureFiles();
 	glm::vec3 cubeCol = glm::vec3(0.65f, 0.66f, 0.02f);
 	glm::vec3 floorCol = glm::vec3(0.1f, 0.1f, 1.0f);
-
+	shader.use();
 	shader.setVec3("lightCol", lightColour);
 	shader.setVec3("lightDirection", lightDir);
+	floorShader.use();
+	floorShader.setVec3("lightCol", lightColour);
+	floorShader.setVec3("lightDirection", lightDir);
+	
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -226,16 +236,31 @@ int main()
 		processInput(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
+
+		
+		shader.setInt("crateTex", 0);
+		shader.setInt("crateSpec", 1);
+	
+
 		// MVP 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 model = glm::mat4(1.0f);
 		// set uniforms - why do we set this each frame?
+
 	    shader.setMat4("projection", projection);
 		shader.setMat4("view", view);
 		shader.setMat4("model", model);
 		shader.setVec3("viewPos", camera.Position);
+	
+		floorShader.setMat4("projection", projection);
+		floorShader.setMat4("view", view);
+		floorShader.setMat4("model", model);
+		floorShader.setVec3("viewPos", camera.Position);
+		
+		
 		shader.setVec3("objectCol", cubeCol);
+
 
 		//setting uniforms for pointlight
 		shader.setVec3("pLight.position", glm::vec3(1, 0, 1));
@@ -248,7 +273,19 @@ int main()
 		shader.setFloat("pLight.ambFac", 0.05f);
 		shader.setFloat("pLight.specShine", 50.f);
 		shader.setFloat("pLight.specStrength", 0.7);
-
+		
+		floorShader.setVec3("pLight.position", glm::vec3(1, 0, 1));
+		floorShader.setVec3("pLight.ambientCol", glm::vec3(0.2349520849, 0.8563239901, 0.2733646522));
+		floorShader.setVec3("pLight.diffuseCol", glm::vec3(0.3123285777, 0.6348458802, 0.2858810024));
+		floorShader.setVec3("pLight.specularCol", glm::vec3(0.4622860781, 0.2729412403, 0.0480364033));
+		floorShader.setFloat("pLight.kC", 1.f);
+		floorShader.setFloat("pLight.lC", 0.5116701455f);
+		floorShader.setFloat("pLight.qC", 0.1815987919f);
+		floorShader.setFloat("pLight.ambFac", 0.05f);
+		floorShader.setFloat("pLight.specShine", 50.f);
+		floorShader.setFloat("pLight.specStrength", 0.7);
+		
+		
 		//setting uniforms for spotLight
 		shader.setVec3("sLight.pos", glm::vec3(0.f,10.f,-5.f));
 		shader.setVec3("sLight.dir", glm::vec3(0.f,-1,0.f));
@@ -263,8 +300,25 @@ int main()
 		shader.setFloat("sLight.ambFac", 0.f);
 		shader.setFloat("sLight.specShine", 100.f);
 		shader.setFloat("sLight.specStrength", 0.4);
-		
 
+		floorShader.setVec3("sLight.pos", glm::vec3(0.f, 10.f, -5.f));
+		floorShader.setVec3("sLight.dir", glm::vec3(0.f, -1, 0.f));
+		floorShader.setVec3("sLight.ambCol", glm::vec3(0.f, 0.f, 0.f));
+		floorShader.setVec3("sLight.diffCol", glm::vec3(1.f, 1.f, 0.f));
+		floorShader.setVec3("sLight.specCol", glm::vec3(1.f, 1.f, 0.f));
+		floorShader.setFloat("sLight.kC", 1.f);
+		floorShader.setFloat("sLight.lC", 0.05f);
+		floorShader.setFloat("sLight.qC", 0.002f);
+		floorShader.setFloat("sLight.inRad", glm::cos(glm::radians(10.f)));
+		floorShader.setFloat("sLight.outRad", glm::cos(glm::radians(10.f)));
+		floorShader.setFloat("sLight.ambFac", 0.f);
+		floorShader.setFloat("sLight.specShine", 100.f);
+		floorShader.setFloat("sLight.specStrength", 0.4);
+		
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, crateTex);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, crateSpec);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);   // what happens if we change to GL_LINE?
 		glBindVertexArray(cubeVAO);  // bind and draw cube
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
@@ -282,9 +336,17 @@ int main()
 		shader.setMat4("model", model);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
+
+		floorShader.setInt("floorTex", 2);
+		floorShader.setInt("floorSpec", 3);
+	
 		model = glm::mat4(1.0f);
-		shader.setMat4("model", model);
-		shader.setVec3("objectCol", floorCol);
+		floorShader.setMat4("model", model);
+		floorShader.setVec3("objectCol", floorCol);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, floorTex);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, floorSpec);
 		glBindVertexArray(floorVAO);  // bind and draw floor
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	
@@ -353,7 +415,52 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	camera.ProcessMouseScroll(yoffset);
 }
 
+unsigned int loadTexture(char const* path)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
 
+	int width, height, comp;
+	unsigned char* data = stbi_load(path, &width, &height, &comp, 0);
+
+	if (data)
+	{
+		GLenum format;
+		if (comp == 1)
+			format = GL_RED;
+		else if (comp == 3)
+			format = GL_RGB;
+		else if (comp == 4)
+			format = GL_RGBA;
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //x axis
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //y axis
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		stbi_image_free(data);
+		std::cout << "Loaded texture from: " << path << " width: " << width << " height: " << height << " id " << textureID << std::endl;
+	}
+	else
+	{
+		std::cout << "Couldnt load texture from: " << path << std::endl;
+		stbi_image_free(data);
+	}
+	return textureID;
+}
+
+
+void loadTextureFiles()
+{
+	crateTex = loadTexture("../Resources/Textures/Wood_Crate_001_SD/Wood_Crate_001_basecolor.jpg");
+	crateSpec = loadTexture("../Resources/Textures/Wood_Crate_001_SD/Wood_Crate_001_roughness.jpg");
+	floorTex = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_COLOR.jpg");
+	floorSpec = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_DISP.png");
+}
 
 
 
