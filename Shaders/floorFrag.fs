@@ -61,7 +61,7 @@ uniform sampler2D floorTex;
 uniform sampler2D floorSpec;
 uniform sampler2D floorNorm;
 
-uniform int map;
+uniform bool map;
 float ambientFactor = 0.5f;
 float shine = 150.f;
 float specularStrength = 0.2f;
@@ -72,7 +72,7 @@ float sharpness =50.f;
 void main()
 {   
 	vec3 norm=vec3(0.0);
-	if(map==1)
+	if(map==true)
 {
 		norm=texture(floorNorm,uv).xyz;
 		norm=norm*2 -1;

@@ -44,7 +44,7 @@ unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO, crateTex,c
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-int map;
+bool map = false;;
 
 // cube data
 float cubeVertices[] = {
@@ -253,7 +253,7 @@ int main()
 		shader.setMat4("view", view);
 		shader.setMat4("model", model);
 		shader.setVec3("viewPos", camera.Position);
-		shader.setInt("map", map);
+		shader.setBool("map", map);
 	
 		floorShader.setMat4("projection", projection);
 		floorShader.setMat4("view", view);
@@ -388,7 +388,7 @@ void processInput(GLFWwindow *window)
 		camera.ProcessKeyboard(MOVEDOWN, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
-		if (map == 1) map = 0;
+		if (map == true) map = 0;
 		else map = 1;
 	}
 }

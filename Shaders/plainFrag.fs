@@ -61,7 +61,7 @@ uniform sampler2D crateTex;
 uniform sampler2D crateSpec;
 uniform sampler2D crateNorm;
 
-uniform int map;
+uniform bool map;
 
 float ambientFactor = 0.5f;
 float shine = 150.f;
@@ -74,7 +74,7 @@ void main()
 {   
 
    vec3 norm =vec3(0.0);
-   if(map==1)
+   if(map==true)
    {
    norm = texture(crateNorm,uv).xyz;
    norm=norm*2 -1;
