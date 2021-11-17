@@ -11,10 +11,12 @@
 
 #include "Shader.h"
 #include "Camera.h"
+#include "normalMapper.h"
 
 #include<string>
 #include <iostream>
 #include <numeric>
+#include <vector>
 
 
 
@@ -39,7 +41,6 @@ bool firstMouse = true;
 
 //arrays
 unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO, crateTex,crateSpec,crateNorm, floorTex,floorSpec,floorNorm;
-
 
 // timing
 float deltaTime = 0.0f;
@@ -108,7 +109,7 @@ unsigned int cubeIndices[] = {
 
 
 };
-
+normalMapper normalMap;
 
 float floorSize = 5.0f;
 float floorLevel = -2.0f;
@@ -130,6 +131,8 @@ unsigned int floorIndices[] = {
 
 int main()
 {
+
+
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -167,6 +170,14 @@ int main()
 	  
 	// Create VAO
 	// Cube
+
+	normalMap.calctanandbinorm(cubeVertices, sizeof(cubeVertices), cubeIndices, sizeof(cubeIndices)/4);
+	std::vector<float> updatedCubeVertices = normalMap.getVertexData();
+
+	normalMap.calctanandbinorm(floorVertices, sizeof(floorVertices), floorIndices, sizeof(floorIndices));
+	std::vector<float> updatedFloorVertices = normalMap.getVertexData();
+
+
 	glGenVertexArrays(1, &cubeVAO);
 	glGenBuffers(1, &cubeVBO);
 	glGenBuffers(1, &cubeEBO);
@@ -174,20 +185,29 @@ int main()
 	glBindVertexArray(cubeVAO);
 	// fill VBO with vertex data
 	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, updatedCubeVertices.size()*sizeof(GL_FLOAT), updatedCubeVertices.data() , GL_STATIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 	// fill EBO with index data
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	// normal attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 	//UV attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
+	//tan attribute
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(8 * sizeof(float)));
+	glEnableVertexAttribArray(3);
+	//binormal attribute
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float)));
+	glEnableVertexAttribArray(4);
+
+
 
 	//Floor
 	glGenVertexArrays(1, &floorVAO);
@@ -197,20 +217,27 @@ int main()
 	glBindVertexArray(floorVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, updatedFloorVertices.size()*sizeof(GL_FLOAT), floorVertices, GL_STATIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, floorEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(floorIndices), floorIndices, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	// normal attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 	//UV attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
+	//tan attribute
+	//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float)));
+	//glEnableVertexAttribArray(3);
+	//binormal attribute
+	//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float)));
+	//glEnableVertexAttribArray(4);
 
 	glm::vec3 lightDir = glm::vec3(1.f,-0.7f,0.0f);
 	glm::vec3 lightColour = glm::vec3(0.992f, 0.3687f, 0.3255f);
@@ -476,6 +503,7 @@ void loadTextureFiles()
 	floorSpec = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_DISP.png");
 	floorNorm = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_NORM.jpg");
 }
+
 
 
 
