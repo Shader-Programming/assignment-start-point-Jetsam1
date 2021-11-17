@@ -59,7 +59,9 @@ uniform vec3 objectCol;
 uniform vec3 viewPos;
 uniform sampler2D floorTex;
 uniform sampler2D floorSpec;
+uniform sampler2D floorNorm;
 
+uniform int map;
 float ambientFactor = 0.5f;
 float shine = 150.f;
 float specularStrength = 0.2f;
@@ -69,7 +71,17 @@ float sharpness =50.f;
 //vec3 colour = vec3(0.2f,0.5f,0.6f);
 void main()
 {   
-    vec3 norm = normalize(normal);
+	vec3 norm=vec3(0.0);
+	if(map==1)
+{
+		norm=texture(floorNorm,uv).xyz;
+		norm=norm*2 -1;
+		norm=normalize(norm);
+	}
+	else
+	{
+		vec3 norm = normalize(normal);
+	}
 	vec3 viewDir = (normalize(viewPos-WSpos));
 	vec3 result=vec3(0.0);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);

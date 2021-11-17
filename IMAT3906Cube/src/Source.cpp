@@ -38,13 +38,13 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 //arrays
-unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO, crateTex,crateSpec,floorTex,floorSpec;
+unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO, crateTex,crateSpec,crateNorm, floorTex,floorSpec,floorNorm;
 
 
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-
+int map;
 
 // cube data
 float cubeVertices[] = {
@@ -240,6 +240,7 @@ int main()
 		
 		shader.setInt("crateTex", 0);
 		shader.setInt("crateSpec", 1);
+		shader.setInt("crateNorm", 2);
 	
 
 		// MVP 
@@ -252,11 +253,13 @@ int main()
 		shader.setMat4("view", view);
 		shader.setMat4("model", model);
 		shader.setVec3("viewPos", camera.Position);
+		shader.setInt("map", map);
 	
 		floorShader.setMat4("projection", projection);
 		floorShader.setMat4("view", view);
 		floorShader.setMat4("model", model);
 		floorShader.setVec3("viewPos", camera.Position);
+		floorShader.setInt("map", map);
 		
 		
 		shader.setVec3("objectCol", cubeCol);
@@ -319,6 +322,8 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, crateTex);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, crateSpec);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, crateNorm);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);   // what happens if we change to GL_LINE?
 		glBindVertexArray(cubeVAO);  // bind and draw cube
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
@@ -337,16 +342,19 @@ int main()
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 
-		floorShader.setInt("floorTex", 2);
-		floorShader.setInt("floorSpec", 3);
+		floorShader.setInt("floorTex", 3);
+		floorShader.setInt("floorSpec", 4);
+		floorShader.setInt("floorNorm", 5);
 	
 		model = glm::mat4(1.0f);
 		floorShader.setMat4("model", model);
 		floorShader.setVec3("objectCol", floorCol);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, floorTex);
 		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, floorTex);
+		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, floorSpec);
+		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_2D, floorNorm);
 		glBindVertexArray(floorVAO);  // bind and draw floor
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	
@@ -378,6 +386,11 @@ void processInput(GLFWwindow *window)
 		camera.ProcessKeyboard(MOVEUP, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 		camera.ProcessKeyboard(MOVEDOWN, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+	{
+		if (map == 1) map = 0;
+		else map = 1;
+	}
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -458,8 +471,10 @@ void loadTextureFiles()
 {
 	crateTex = loadTexture("../Resources/Textures/Wood_Crate_001_SD/Wood_Crate_001_basecolor.jpg");
 	crateSpec = loadTexture("../Resources/Textures/Wood_Crate_001_SD/Wood_Crate_001_roughness.jpg");
+	crateNorm = loadTexture("../Resources/Textures/Wood_Crate_001_SD/Wood_Crate_001_normal.jpg");
 	floorTex = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_COLOR.jpg");
 	floorSpec = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_DISP.png");
+	floorNorm = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_NORM.jpg");
 }
 
 
