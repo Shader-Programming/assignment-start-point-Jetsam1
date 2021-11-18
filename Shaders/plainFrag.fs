@@ -66,8 +66,8 @@ uniform bool map;
 float ambientFactor = 0.5f;
 float shine = 1500.f;
 float specularStrength = 0.2f;
-float Brightness=0.6f;
-float sharpness =50.f;
+float Brightness=0.1f;
+float sharpness =500.f;
 
 //vec3 colour = vec3(0.2f,0.5f,0.6f);
 void main()
