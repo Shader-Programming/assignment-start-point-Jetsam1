@@ -135,6 +135,7 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir)
    float dist=length(pLight.position-WSpos);
    float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
    vec3 pLightDir = normalize( pLight.position - WSpos );
+   pLightDir = normalize(pLightDir*invTBN); 
 
    vec3 ambCol = pLight.ambientCol * diffmapcol* pLight.ambFac;
    ambCol = ambCol * atten;
@@ -165,6 +166,7 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir)
    float dist=length(sLight.pos-WSpos);
    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
    vec3 sLightDir = normalize( sLight.pos - WSpos );
+   sLightDir = normalize(sLightDir*invTBN);
 
    vec3 ambCol = sLight.ambCol * objectCol * sLight.ambFac;
    ambCol = ambCol * atten;

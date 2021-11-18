@@ -110,6 +110,7 @@ unsigned int cubeIndices[] = {
 
 };
 normalMapper normalMap;
+normalMapper nMap;
 
 float floorSize = 5.0f;
 float floorLevel = -2.0f;
@@ -180,8 +181,8 @@ int main()
 	normalMap.calctanandbinorm(cubeVertices, (sizeof(cubeVertices))/4, cubeIndices, sizeof(cubeIndices)/4);
 	std::vector<float> updatedCubeVertices = normalMap.getVertexData();
 
-	normalMap.calctanandbinorm(floorVertices, sizeof(floorVertices)/4, floorIndices, sizeof(floorIndices)/4);
-	std::vector<float> updatedFloorVertices = normalMap.getVertexData();
+	nMap.calctanandbinorm(floorVertices, sizeof(floorVertices)/4, floorIndices, sizeof(floorIndices)/4);
+	std::vector<float> updatedFloorVertices = nMap.getVertexData();
 
 
 	glGenVertexArrays(1, &cubeVAO);

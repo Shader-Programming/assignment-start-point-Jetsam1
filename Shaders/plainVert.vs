@@ -25,7 +25,7 @@ void main()
     normal=(model*vec4(aNormals,0.0)).xyz;
     vec3 T=(model*vec4(tangent,0.0)).xyz;
     vec3 B=(model*vec4(perpBisector,0.0)).xyz;
-    invTBN=mat3(T ,B ,normal);
-    //invTBN=transpose(TBN);
+    TBN=mat3(T ,B ,normal);
+    invTBN=transpose(TBN);
     uv=UVcoords;
 }
