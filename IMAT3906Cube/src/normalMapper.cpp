@@ -88,6 +88,7 @@ void normalMapper::getValues(unsigned int* indicesdata, int indicesLength)
 				V.binorm = glm::normalize(V.tan);
 			}
 		}
+		
 		else
 		{
 			v0.tan = v0.tan; 
@@ -100,7 +101,7 @@ void normalMapper::getValues(unsigned int* indicesdata, int indicesLength)
 			v2.binorm = v2.binorm;
 		}
 
-
+		
 
 	}
 }

@@ -177,7 +177,7 @@ int main()
 	// Create VAO
 	// Cube
 
-	normalMap.calctanandbinorm(cubeVertices, sizeof(cubeVertices)/4, cubeIndices, sizeof(cubeIndices)/4);
+	normalMap.calctanandbinorm(cubeVertices, (sizeof(cubeVertices))/4, cubeIndices, sizeof(cubeIndices)/4);
 	std::vector<float> updatedCubeVertices = normalMap.getVertexData();
 
 	normalMap.calctanandbinorm(floorVertices, sizeof(floorVertices)/4, floorIndices, sizeof(floorIndices)/4);
@@ -223,20 +223,20 @@ int main()
 	glBindVertexArray(floorVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
-	glBufferData(GL_ARRAY_BUFFER, updatedFloorVertices.size()*sizeof(GL_FLOAT), floorVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, updatedFloorVertices.size()*sizeof(GL_FLOAT), updatedFloorVertices.data(), GL_STATIC_DRAW);
 	//glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, floorEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(floorIndices), floorIndices, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	// normal attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 	//UV attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 	//tan attribute
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float)));

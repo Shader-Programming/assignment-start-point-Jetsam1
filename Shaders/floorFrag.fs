@@ -74,7 +74,7 @@ void main()
 {   
 	vec3 norm=vec3(0.0);
 	if(map==true)
-{
+	{
 		norm=texture(floorNorm,uv).xyz;
 		norm=norm*2 -1;
 		norm=normalize(norm);

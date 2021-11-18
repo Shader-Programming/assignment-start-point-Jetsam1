@@ -79,14 +79,14 @@ void main()
    {
    norm = texture(crateNorm,uv).xyz;
    norm=norm*2 -1;
-   norm=normalize(norm);
+   norm=normalize(norm*invTBN);
    }
    else
    {
        norm = normalize(normal);
    }
 	vec3 viewDir = normalize(viewPos-WSpos);
-	viewDir=normalize(viewDir*invTBN);
+	//viewDir=normalize(viewDir*invTBN);
 	vec3 result=vec3(0.0);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
 	vec3 PointLightRes = GetPointLight(norm,viewDir);
@@ -107,7 +107,8 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	vec3 specmapcol = texture(crateSpec,uv).xyz;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
-	vec3 lightDir=normalize(lightDirection*invTBN);
+	//vec3 lightDir=normalize(lightDirection*invTBN);
+	vec3 lightDir=normalize(lightDirection);
     float diffuseFactor = dot(norm,-lightDir);
     diffuseFactor = max(diffuseFactor,0.0f);
     vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
