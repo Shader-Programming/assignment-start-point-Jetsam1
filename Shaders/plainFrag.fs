@@ -5,6 +5,7 @@ out vec4 FragColor;
 in vec3 normal;
 in vec3 WSpos;
 in vec2 uv;
+in mat3 invTBN;
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
 vec3 GetPointLight(vec3 norm,vec3 viewDir);
@@ -84,7 +85,8 @@ void main()
    {
        norm = normalize(normal);
    }
-	vec3 viewDir = (normalize(viewPos-WSpos));
+	vec3 viewDir = normalize(viewPos-WSpos);
+	viewDir=normalize(viewDir*invTBN);
 	vec3 result=vec3(0.0);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
 	vec3 PointLightRes = GetPointLight(norm,viewDir);
@@ -105,14 +107,14 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	vec3 specmapcol = texture(crateSpec,uv).xyz;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
-
-    float diffuseFactor = dot(norm,-lightDirection);
+	vec3 lightDir=normalize(lightDirection*invTBN);
+    float diffuseFactor = dot(norm,-lightDir);
     diffuseFactor = max(diffuseFactor,0.0f);
     vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
 
 
-   // vec3 reflectDir = reflect(lightDirection,norm);
-   vec3 halfDir = normalize(lightDirection+viewDir);
+   // vec3 reflectDir = reflect(lightDir,norm);
+   vec3 halfDir = normalize(lightDir+viewDir);
    //float specularFactor = dot(viewDir,reflectDir);
    float specularFactor=dot(halfDir,norm);
   
