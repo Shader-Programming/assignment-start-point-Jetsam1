@@ -10,6 +10,8 @@ layout (location = 4) in vec3 perpBisector;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform vec3 viewPos;
+uniform vec3 lightDirection;
 
 out vec3 normal ;
 out vec3 WSpos;
@@ -17,6 +19,10 @@ out vec3 WSnorm;
 out vec2 uv;
 out mat3 invTBN;
 
+float determinant;
+float a;
+float b;
+float c;
 
 void main()
 {  
@@ -26,6 +32,8 @@ void main()
     vec3 T=(model*vec4(tangent,0.0)).xyz;
     vec3 B=(model*vec4(perpBisector,0.0)).xyz;
     mat3 TBN=mat3(T ,B ,normal);
-    invTBN=transpose(TBN);
+    invTBN=inverse(TBN);
+    lightDirection=
+   //invTBN=TBN;
     uv=UVcoords;
 }

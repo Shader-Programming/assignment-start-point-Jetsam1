@@ -103,7 +103,7 @@ void main()
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 {
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
-	vec3 specmapcol = texture(floorSpec,uv).xyz;
+	float specmapcol = texture(floorSpec,uv).x;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
 	vec3 lightDir=normalize(lightDirection*invTBN);
     float diffuseFactor = dot(norm,-lightDir);
@@ -130,7 +130,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 vec3 GetPointLight(vec3 norm,vec3 viewDir)
 {
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
-	vec3 specmapcol = texture(floorSpec,uv).xyz;
+	float specmapcol = texture(floorSpec,uv).x;
 
    float dist=length(pLight.position-WSpos);
    float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
@@ -161,7 +161,7 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir)
 vec3 GetSpotLight(vec3 norm,vec3 viewDir)
 {
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
-	vec3 specmapcol = texture(floorSpec,uv).xyz;
+	float specmapcol = texture(floorSpec,uv).x;
 
    float dist=length(sLight.pos-WSpos);
    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
