@@ -42,6 +42,7 @@ bool firstMouse = true;
 unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO, crateTex,crateSpec,crateNorm, floorTex,floorSpec,floorNorm;
 
 normalMapper normalCubeMap;
+normalMapper normalFloorMap;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -144,6 +145,10 @@ int main()
 	}
 	normalCubeMap.calctanandbinorm(cubeVertices, (768), cubeIndices, (36));
 	std::vector<float>updatedVertexData = normalCubeMap.getVertexData();
+
+	normalFloorMap.calctanandbinorm(floorVertices, (128), floorIndices, 6);
+	std::vector<float>updatedFloorData = normalFloorMap.getVertexData();
+
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
@@ -206,20 +211,28 @@ int main()
 	glBindVertexArray(floorVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, updatedFloorData.size(), updatedFloorData.data(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, floorEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(floorIndices), floorIndices, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	// normal attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	//UV attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
+	// position attribute
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(6*sizeof(float)));
 	glEnableVertexAttribArray(2);
+
+	// position attribute
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(9*sizeof(float)));
+	glEnableVertexAttribArray(3);
+	//UV attribute
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(12 * sizeof(float)));
+	glEnableVertexAttribArray(4);
 
 	glm::vec3 lightDir = glm::vec3(1.f,-0.7f,0.0f);
 	glm::vec3 lightColour = glm::vec3(0.992f, 0.3687f, 0.3255f);
