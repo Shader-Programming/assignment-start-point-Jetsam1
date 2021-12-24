@@ -3,7 +3,7 @@
 out vec4 FragColor;
 
 in vec3 normal;
-in vec3 WSpos;
+in vec3 TanSpacepos;
 in vec2 uv;
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
@@ -84,7 +84,7 @@ void main()
    {
        norm = normalize(normal);
    }
-	vec3 viewDir = (normalize(viewPos-WSpos));
+	vec3 viewDir = (normalize(viewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
 	vec3 PointLightRes = GetPointLight(norm,viewDir);
@@ -132,9 +132,9 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir)
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	vec3 specmapcol = texture(crateSpec,uv).xyz;
 
-   float dist=length(pLight.position-WSpos);
+   float dist=length(pLight.position-TanSpacepos);
    float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
-   vec3 pLightDir = normalize( pLight.position - WSpos );
+   vec3 pLightDir = normalize( pLight.position - TanSpacepos );
 
    vec3 ambCol = pLight.ambientCol * diffmapcol* pLight.ambFac;
    ambCol = ambCol * atten;
@@ -162,9 +162,9 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir)
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	vec3 specmapcol = texture(crateSpec,uv).xyz;
 
-   float dist=length(sLight.pos-WSpos);
+   float dist=length(sLight.pos-TanSpacepos);
    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
-   vec3 sLightDir = normalize( sLight.pos - WSpos );
+   vec3 sLightDir = normalize( sLight.pos - TanSpacepos );
 
    vec3 ambCol = sLight.ambCol * objectCol * sLight.ambFac;
    ambCol = ambCol * atten;
