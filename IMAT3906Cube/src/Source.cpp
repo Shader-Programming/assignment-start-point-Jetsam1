@@ -15,6 +15,7 @@
 #include<string>
 #include <iostream>
 #include <numeric>
+#include "normalMapper.h"
 
 
 
@@ -40,7 +41,7 @@ bool firstMouse = true;
 //arrays
 unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO, crateTex,crateSpec,crateNorm, floorTex,floorSpec,floorNorm;
 
-
+normalMapper normalCubeMap;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -141,6 +142,8 @@ int main()
 		glfwTerminate();
 		return -1;
 	}
+	normalCubeMap.calctanandbinorm(cubeVertices, (768), cubeIndices, (36));
+	std::vector<float>updatedVertexData = normalCubeMap.getVertexData();
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
@@ -174,20 +177,26 @@ int main()
 	glBindVertexArray(cubeVAO);
 	// fill VBO with vertex data
 	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, updatedVertexData.size(), updatedVertexData.data(), GL_STATIC_DRAW);
 	// fill EBO with index data
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	// normal attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	//UV attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	//tangent attribute
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
+	//binormal attribute
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(9 * sizeof(float)));
+	glEnableVertexAttribArray(3);
+	//UV attribute
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(12 * sizeof(float)));
+	glEnableVertexAttribArray(4);
 
 	//Floor
 	glGenVertexArrays(1, &floorVAO);
