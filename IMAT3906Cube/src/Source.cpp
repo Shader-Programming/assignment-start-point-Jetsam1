@@ -86,6 +86,9 @@ float cubeVertices[] = {
 		   0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
 		  -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
 };
+normalMapper normalMap.calctanandbinorm(cubeVertices, (sizeof(cubeVertices)) / 4, cubeIndices, sizeof(cubeIndices) / 4);
+std::vector<float> updatedCubeVertices = normalMap.getVertexData();
+
 
 unsigned int cubeIndices[] = {
 	1,2,3,
@@ -121,6 +124,8 @@ float floorVertices[] = {
 		 floorSize, floorLevel,  floorSize, 0.0, 1.0, 0.0, 1.0f,1.0f,
 		-floorSize, floorLevel,  floorSize, 0.0, 1.0, 0.0, 0.0f,1.0f
 };
+normalMapper nMap.calctanandbinorm(floorVertices, sizeof(floorVertices) / 4, floorIndices, sizeof(floorIndices) / 4);
+std::vector<float> updatedFloorVertices = nMap.getVertexData();
 /*
 float floorVertices[] = {
 		 -5.f, -5.f,  -5.f, 0.0, 1.0, 0.0,   0.0f, 0.0f,
@@ -128,6 +133,10 @@ float floorVertices[] = {
 		 5.f, -5.f,  5.f, 0.0, 1.0, 0.0, 1.0f,1.0f,
 		-5.f, -5.f,  5.f, 0.0, 1.0, 0.0, 0.0f,1.0f
 };*/
+
+
+
+
 unsigned int floorIndices[] = {
 	3,2,1,
 	3,1,0
@@ -178,11 +187,8 @@ int main()
 	// Create VAO
 	// Cube
 
-	normalMap.calctanandbinorm(cubeVertices, (sizeof(cubeVertices))/4, cubeIndices, sizeof(cubeIndices)/4);
-	std::vector<float> updatedCubeVertices = normalMap.getVertexData();
 
-	nMap.calctanandbinorm(floorVertices, sizeof(floorVertices)/4, floorIndices, sizeof(floorIndices)/4);
-	std::vector<float> updatedFloorVertices = nMap.getVertexData();
+
 
 
 	glGenVertexArrays(1, &cubeVAO);
@@ -205,13 +211,13 @@ int main()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 	//UV attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(6 * sizeof(float)));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 	//tan attribute
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(8 * sizeof(float)));
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(9 * sizeof(float)));
 	glEnableVertexAttribArray(3);
 	//binormal attribute
-	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float)));
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(12 * sizeof(float)));
 	glEnableVertexAttribArray(4);
 
 

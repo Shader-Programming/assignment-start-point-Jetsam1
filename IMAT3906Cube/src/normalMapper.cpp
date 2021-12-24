@@ -46,9 +46,9 @@ void normalMapper::extractVertices(float* vertexData, int length)
 	{
 		point.pos = glm::vec3(vertexData[i], vertexData[i + 1], vertexData[i + 2]);
 		point.norm = glm::vec3(vertexData[i + 3], vertexData[i + 4], vertexData[i + 5]);
-		point.uv = glm::vec2(vertexData[i + 6], vertexData[i + 7]);
 		point.tan = glm::vec3(0.f, 0.f, 0.f);
 		point.binorm = glm::vec3(0.f, 0.f, 0.f);
+		point.uv = glm::vec2(vertexData[i + 6], vertexData[i + 7]);
 		vertices.push_back(point);
 	}
 }
