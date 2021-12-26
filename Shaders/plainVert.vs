@@ -28,5 +28,5 @@ void main()
     invTBN = mat3(T ,B ,normal);
     invTBN = inverse(invTBN);
     normal=normal*invTBN;
-    uv=5*UVcoords;
+    uv=UVcoords;
 }

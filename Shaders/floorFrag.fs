@@ -75,19 +75,20 @@ float sharpness =50.f;
 void main()
 {   
 	vec3 norm=vec3(0.0);
-	//if(map==true)
-{	//
-	//	norm=texture(floorNorm,uv).xyz;
-	//	norm=norm*2 -1;
-	//	norm=normalize(norm);
-	//}
-	//else
-	//{
-	//	vec3 norm = normalize(normal);
-	//}
+	if(map==true)
+	{
+	
+		norm=texture(floorNorm,uv).xyz;
+		norm=norm*2 -1;
+		norm=normalize(norm);
+	}
+	else
+	{
+		vec3 norm = normalize(normal);
+	}
 	vec3 viewDir = (normalize(viewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
-	parallaxMapping(uv,viewDir);
+	//parallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
 	vec3 PointLightRes = GetPointLight(norm,viewDir);
 	vec3 spotLightRes = GetSpotLight(norm,viewDir);
