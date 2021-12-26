@@ -236,6 +236,7 @@ int main()
 
 	glm::vec3 lightDir = glm::vec3(1.f,-0.7f,0.0f);
 	glm::vec3 lightColour = glm::vec3(0.992f, 0.3687f, 0.3255f);
+	//glm::vec3 lightColour = glm::vec3(1.f, 1.f, 1.f);
 	loadTextureFiles();
 	glm::vec3 cubeCol = glm::vec3(0.65f, 0.66f, 0.02f);
 	glm::vec3 floorCol = glm::vec3(0.1f, 0.1f, 1.0f);

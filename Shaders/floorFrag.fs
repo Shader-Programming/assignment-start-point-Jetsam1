@@ -68,8 +68,8 @@ uniform bool map;
 float ambientFactor = 0.5f;
 float shine = 150.f;
 float specularStrength = 0.2f;
-float Brightness=0.6f;
-float sharpness =50.f;
+float Brightness=0.15f;
+float sharpness =300.f;
 
 //vec3 colour = vec3(0.2f,0.5f,0.6f);
 void main()
@@ -88,7 +88,7 @@ void main()
 	}
 	vec3 viewDir = (normalize(viewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
-	//parallaxMapping(uv,viewDir);
+	parallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
 	vec3 PointLightRes = GetPointLight(norm,viewDir);
 	vec3 spotLightRes = GetSpotLight(norm,viewDir);
