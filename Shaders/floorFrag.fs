@@ -9,6 +9,7 @@ in vec2 uv;
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
 vec3 GetPointLight(vec3 norm,vec3 viewDir);
 vec3 GetSpotLight(vec3 norm,vec3 viewDir);
+vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 
 
 struct pointLight
@@ -60,6 +61,8 @@ uniform vec3 viewPos;
 uniform sampler2D floorTex;
 uniform sampler2D floorSpec;
 uniform sampler2D floorNorm;
+uniform sampler2D floorDisp;
+uniform float PXscale;
 
 uniform bool map;
 float ambientFactor = 0.5f;
@@ -72,18 +75,19 @@ float sharpness =50.f;
 void main()
 {   
 	vec3 norm=vec3(0.0);
-	if(map==true)
-{
-		norm=texture(floorNorm,uv).xyz;
-		norm=norm*2 -1;
-		norm=normalize(norm);
-	}
-	else
-	{
-		vec3 norm = normalize(normal);
-	}
+	//if(map==true)
+{	//
+	//	norm=texture(floorNorm,uv).xyz;
+	//	norm=norm*2 -1;
+	//	norm=normalize(norm);
+	//}
+	//else
+	//{
+	//	vec3 norm = normalize(normal);
+	//}
 	vec3 viewDir = (normalize(viewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
+	parallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
 	vec3 PointLightRes = GetPointLight(norm,viewDir);
 	vec3 spotLightRes = GetSpotLight(norm,viewDir);
@@ -99,7 +103,7 @@ void main()
 }
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
-{
+{	
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
 	vec3 specmapcol = texture(floorSpec,uv).xyz;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
@@ -108,22 +112,23 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
     diffuseFactor = max(diffuseFactor,0.0f);
     vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
 
+	// vec3 reflectDir = reflect(lightDirection,norm);
+    vec3 halfDir = normalize(lightDirection+viewDir);
+    //float specularFactor = dot(viewDir,reflectDir);
+    float specularFactor=dot(halfDir,norm);
 
-   // vec3 reflectDir = reflect(lightDirection,norm);
-   vec3 halfDir = normalize(lightDirection+viewDir);
-   //float specularFactor = dot(viewDir,reflectDir);
-   float specularFactor=dot(halfDir,norm);
-  
-  specularFactor = max(specularFactor,0.0);
-   specularFactor = pow(specularFactor,shine);
+    specularFactor = max(specularFactor,0.0);
+    specularFactor = pow(specularFactor,shine);
 
 
-   vec3 SpecColour = lightCol  * specmapcol * specularFactor;
+    vec3 SpecColour = lightCol  * specmapcol * specularFactor;
 
-   vec3 result = ambientColour + diffuseColour+ SpecColour;
+    vec3 result = ambientColour + diffuseColour+ SpecColour;
 
-   return result;
+    return result;
 }
+
+
 
 vec3 GetPointLight(vec3 norm,vec3 viewDir)
 {
@@ -192,4 +197,10 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir)
 	vec3 spotLightRes= ambCol+diffuseColour+SpecColour;
 
 	return spotLightRes;
+}
+
+vec2 parallaxMapping(vec2 uv,vec3 viewDir)
+{
+	float height = texture(floorDisp,uv).r;
+	return uv-(viewDir.xy)*(height *PXscale);
 }

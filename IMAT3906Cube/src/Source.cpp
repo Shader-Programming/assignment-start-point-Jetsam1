@@ -39,7 +39,7 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 //arrays
-unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO, crateTex,crateSpec,crateNorm, floorTex,floorSpec,floorNorm;
+unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
 
 normalMapper normalCubeMap;
 normalMapper normalFloorMap;
@@ -263,6 +263,7 @@ int main()
 		shader.setInt("crateTex", 0);
 		shader.setInt("crateSpec", 1);
 		shader.setInt("crateNorm", 2);
+		shader.setInt("crateDisp", 3);
 	
 
 		// MVP 
@@ -325,6 +326,7 @@ int main()
 		shader.setFloat("sLight.ambFac", 0.f);
 		shader.setFloat("sLight.specShine", 100.f);
 		shader.setFloat("sLight.specStrength", 0.4);
+		shader.setFloat("PXscale", 0.0175);
 
 		floorShader.setVec3("sLight.pos", glm::vec3(0.f, 10.f, -5.f));
 		floorShader.setVec3("sLight.dir", glm::vec3(0.f, -1, 0.f));
@@ -339,6 +341,7 @@ int main()
 		floorShader.setFloat("sLight.ambFac", 0.f);
 		floorShader.setFloat("sLight.specShine", 100.f);
 		floorShader.setFloat("sLight.specStrength", 0.4);
+		floorShader.setFloat("PXscale", 0.0175);
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, crateTex);
@@ -364,9 +367,10 @@ int main()
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 
-		floorShader.setInt("floorTex", 3);
-		floorShader.setInt("floorSpec", 4);
-		floorShader.setInt("floorNorm", 5);
+		floorShader.setInt("floorTex", 4);
+		floorShader.setInt("floorSpec", 5);
+		floorShader.setInt("floorNorm", 6);
+		floorShader.setInt("floorDisp", 7);
 	
 		model = glm::mat4(1.0f);
 		floorShader.setMat4("model", model);
@@ -494,9 +498,11 @@ void loadTextureFiles()
 	crateTex = loadTexture("../Resources/Textures/Wood_Crate_001_SD/Wood_Crate_001_basecolor.jpg");
 	crateSpec = loadTexture("../Resources/Textures/Wood_Crate_001_SD/Wood_Crate_001_roughness.jpg");
 	crateNorm = loadTexture("../Resources/Textures/Wood_Crate_001_SD/Wood_Crate_001_normal.jpg");
+	crateDisp= loadTexture("../Resources/Textures/Wood_Crate_001_SD/Wood_Crate_001_height.png");
 	floorTex = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_COLOR.jpg");
-	floorSpec = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_DISP.png");
+	floorSpec = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_ROUGH.jpg");
 	floorNorm = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_NORM.jpg");
+	floorDisp= loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_DISP.png");
 }
 
 

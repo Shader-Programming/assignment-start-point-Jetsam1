@@ -9,6 +9,7 @@ in vec2 uv;
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
 vec3 GetPointLight(vec3 norm,vec3 viewDir);
 vec3 GetSpotLight(vec3 norm,vec3 viewDir);
+vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 
 
 struct pointLight
@@ -57,9 +58,12 @@ uniform vec3 lightCol;
 uniform vec3 lightDirection;
 uniform vec3 objectCol;
 uniform vec3 viewPos;
+
+uniform float PXscale;
 uniform sampler2D crateTex;
 uniform sampler2D crateSpec;
 uniform sampler2D crateNorm;
+uniform sampler2D crateDisp;
 
 uniform bool map;
 
@@ -86,6 +90,7 @@ void main()
    }
 	vec3 viewDir = (normalize(viewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
+	parallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
 	vec3 PointLightRes = GetPointLight(norm,viewDir);
 	vec3 spotLightRes = GetSpotLight(norm,viewDir);
@@ -98,7 +103,7 @@ void main()
 	result = dirLightRes + PointLightRes + spotLightRes +Rim;
 
    FragColor = vec4(result,1.f);
-}
+   }
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 {
@@ -194,4 +199,10 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir)
 	vec3 spotLightRes= ambCol+diffuseColour+SpecColour;
 
 	return spotLightRes;
+}
+
+vec2 parallaxMapping(vec2 uv,vec3 viewDir)
+{
+	float height = texture(crateDisp,uv).r;
+	return uv-(viewDir.xy)*(height *PXscale);
 }
