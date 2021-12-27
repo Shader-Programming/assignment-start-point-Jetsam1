@@ -3,13 +3,16 @@
 out vec4 FragColor;
 
 in vec3 normal;
-in vec3 TanSpacepos;
 in vec2 uv;
+in vec3 TanSpacepos;
+in vec3 tanLightDirection;
+in vec3 tanViewPos;
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
 vec3 GetPointLight(vec3 norm,vec3 viewDir);
 vec3 GetSpotLight(vec3 norm,vec3 viewDir);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
+vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
 
 
 struct pointLight
@@ -55,9 +58,7 @@ uniform spotLight sLight;
 
 
 uniform vec3 lightCol;
-uniform vec3 lightDirection;
 uniform vec3 objectCol;
-uniform vec3 viewPos;
 uniform sampler2D floorTex;
 uniform sampler2D floorSpec;
 uniform sampler2D floorNorm;
@@ -86,7 +87,7 @@ void main()
 	{
 		vec3 norm = normalize(normal);
 	}
-	vec3 viewDir = (normalize(viewPos-TanSpacepos));
+	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
 	parallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
@@ -109,12 +110,12 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 	vec3 specmapcol = texture(floorSpec,uv).xyz;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
 
-    float diffuseFactor = dot(norm,-lightDirection);
+    float diffuseFactor = dot(norm,-tanLightDirection);
     diffuseFactor = max(diffuseFactor,0.0f);
     vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
 
-	// vec3 reflectDir = reflect(lightDirection,norm);
-    vec3 halfDir = normalize(lightDirection+viewDir);
+	// vec3 reflectDir = reflect(tanLightDirection,norm);
+    vec3 halfDir = normalize(tanLightDirection+viewDir);
     //float specularFactor = dot(viewDir,reflectDir);
     float specularFactor=dot(halfDir,norm);
 
@@ -204,4 +205,22 @@ vec2 parallaxMapping(vec2 uv,vec3 viewDir)
 {
 	float height = texture(floorDisp,uv).r;
 	return uv-(viewDir.xy)*(height *PXscale);
+}
+
+vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir)
+{
+	float numLayers = 10;
+	float layerDepth = 1.0 / numLayers;
+	float currentLayerDepth = 0.0;
+	vec2 P = viewDir.xy * PXscale;
+	vec2 deltaTexCoords = P /numLayers;
+	vec2 currentTexCoords = uv;
+	float currentDepthMapValue = texture(floorDisp,currentTexCoords).r;
+	while(currentLayerDepth<currentDepthMapValue)
+	{
+		currentTexCoords -=deltaTexCoords;
+		currentDepthMapValue = texture(floorDisp,currentTexCoords).r;
+		currentLayerDepth+= layerDepth;
+	}
+	return currentTexCoords;
 }
