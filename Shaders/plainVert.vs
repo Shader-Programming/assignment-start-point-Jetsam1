@@ -31,8 +31,9 @@ void main()
     vec3 B=(model*vec4(perpBisector,0.0)).xyz;
     invTBN = mat3(T ,B ,normal);
 
-    invTBN = transpose(invTBN);
-    TanSpacepos=WSpos*invTBN;
+    invTBN = inverse(invTBN);
+    TanSpacepos=WSpos;
+  //  TanSpacepos=WSpos*invTBN;
     tanLightDirection=lightDirection*invTBN;
     tanViewPos=viewPos*invTBN;
 
