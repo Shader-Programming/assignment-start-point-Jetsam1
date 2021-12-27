@@ -57,7 +57,7 @@ uniform spotLight sLight;
 
 
 uniform vec3 lightCol;
-in vec3 tanlightDirection;
+
 uniform vec3 objectCol;
 
 
