@@ -86,10 +86,10 @@ void main()
    norm=norm*2 -1;
    norm=normalize(norm);
    }
-   else
-   {
-       norm = normalize(normal);
-   }
+  // else
+ //  {
+   //    norm = normalize(normal);
+ //  }
 	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
 	parallaxMapping(uv,viewDir);

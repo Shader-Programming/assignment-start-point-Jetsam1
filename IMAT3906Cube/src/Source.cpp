@@ -283,7 +283,7 @@ int main()
 		floorShader.setMat4("view", view);
 		floorShader.setMat4("model", model);
 		floorShader.setVec3("viewPos", camera.Position);
-		floorShader.setInt("map", map);
+		floorShader.setBool("map", map);
 		
 		
 		shader.setVec3("objectCol", cubeCol);
@@ -415,6 +415,7 @@ void processInput(GLFWwindow *window)
 		camera.ProcessKeyboard(MOVEDOWN, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
+		
 		if (map == true) map = 0;
 		else map = 1;
 	}

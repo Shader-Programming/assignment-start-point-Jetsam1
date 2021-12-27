@@ -32,8 +32,8 @@ void main()
     invTBN = mat3(T ,B ,normal);
     invTBN = transpose(invTBN);
    normal=normal*invTBN;
-  // TanSpacepos=TanSpacepos*invTBN;
+  TanSpacepos=TanSpacepos*invTBN;
   tanLightDirection = lightDirection*invTBN;
-  tanViewPos=viewPos *invTBN;
+  tanViewPos=viewPos*invTBN;
     uv=UVcoords;
 }
