@@ -99,7 +99,7 @@ void main()
 	float Rim= (Brightness*pow((1-dp),sharpness));
 
 
-	result = dirLightRes + PointLightRes + spotLightRes +Rim;
+	result = dirLightRes + PointLightRes + spotLightRes ;
 
    FragColor = vec4(result,1.f);
 }
