@@ -15,14 +15,9 @@ uniform vec3 lightDirection;
 
 out vec3 normal ;
 out vec3 WSpos;
-out vec3 WSnorm;
 out vec2 uv;
 out mat3 invTBN;
-
-float determinant;
-float a;
-float b;
-float c;
+out vec3 TanlightDirection;
 
 void main()
 {  
@@ -33,7 +28,7 @@ void main()
     vec3 B=(model*vec4(perpBisector,0.0)).xyz;
     mat3 TBN=mat3(T ,B ,normal);
     invTBN=transpose(TBN);
-  //  lightDirection=
+    TanlightDirection=lightDirection*invTBN;
    //invTBN=TBN;
     uv=UVcoords;
 }

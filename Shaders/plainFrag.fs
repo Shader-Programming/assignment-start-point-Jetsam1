@@ -55,9 +55,9 @@ uniform spotLight sLight;
 
 
 uniform vec3 lightCol;
-uniform vec3 lightDirection;
+in vec3 TanlightDirection;
 uniform vec3 objectCol;
-uniform vec3 viewPos;
+in vec3 TanviewPos;
 uniform sampler2D crateTex;
 uniform sampler2D crateSpec;
 uniform sampler2D crateNorm;
@@ -85,7 +85,7 @@ void main()
    {
        norm = normalize(normal);
    }
-	vec3 viewDir = normalize(viewPos-WSpos);
+	vec3 viewDir = normalize(TanviewPos-WSpos);
 //	viewDir=normalize(viewDir*invTBN);
 	vec3 result=vec3(0.0);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
@@ -107,8 +107,8 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	float specmapcol = texture(crateSpec,uv).x;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
-	vec3 lightDir=normalize(invTBN*lightDirection);
-	//vec3 lightDir=normalize(lightDirection);
+	vec3 lightDir=normalize(invTBN*TanlightDirection);
+	//vec3 lightDir=normalize(TanlightDirection);
     float diffuseFactor = dot(norm,-lightDir);
     diffuseFactor = max(diffuseFactor,0.0f);
     vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
