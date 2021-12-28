@@ -26,15 +26,16 @@ out vec2 uv;
 void main()
 {  
     gl_Position = projection * view * model*vec4(aPos,1.0);
-    WSpos= (model * vec4(aPos,1.0)).xyz;
-    normal=(model*vec4(aNormals,0.0)).xyz;
-    vec3 T=(model*vec4(tangent,0.0)).xyz;
-    vec3 B=(model*vec4(perpBisector,0.0)).xyz;
-    invTBN = mat3(T ,B ,normal);
- //  normal=normal*invTBN;
-//  TanSpacepos=WSpos*invTBN;
-   TanSpacepos=WSpos;
-  tanLightDirection = lightDirection*invTBN;
-  tanViewPos=viewPos*invTBN;
+    WSpos=(model * vec4(aPos,1.0)).xyz;
+    vec3 T=normalize(vec3(model*vec4(tangent,0.0)));
+    vec3 B=normalize(vec3(model*vec4(perpBisector,0.0)));
+    vec3 N=normalize(vec3(model*vec4(aNormals,0.0)));
+    mat3 TBN =transpose(mat3(T ,B ,N));
+ //  normal=normal*TBN;
+ // TanSpacepos=TBN* vec3(model * vec4(aPos,1.0));
+ TanSpacepos=WSpos;
+ // tanLightDirection =TBN*lightDirection;
+ tanLightDirection =lightDirection;
+  tanViewPos=TBN*viewPos;
     uv=UVcoords;
 }

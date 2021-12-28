@@ -11,7 +11,7 @@ in vec3 WSpos;
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
 vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 viewPos);
-vec3 GetSpotLight(vec3 norm,vec3 viewDir);
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 viewPos);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 
 
@@ -98,14 +98,14 @@ void main()
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
 
 	vec3 PointLightRes = GetPointLight(norm,viewDir,TanSpacepos);
-	vec3 spotLightRes = GetSpotLight(norm,viewDir);
+	vec3 spotLightRes = GetSpotLight(norm,viewDir,TanSpacepos);
 
 	//Rim Lighting (come back to this)
 	float dp = dot(norm , viewDir);
 	float Rim= (Brightness*pow((1-dp),sharpness));
 
 
-	result = dirLightRes + PointLightRes  ;
+	result = spotLightRes+PointLightRes +dirLightRes ;
 
    FragColor = vec4(result,1.f);
    }
@@ -167,14 +167,14 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 viewPos)
 	return pointlightRes;
 }
 
-vec3 GetSpotLight(vec3 norm,vec3 viewDir)
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 viewPos)
 {
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	vec3 specmapcol = texture(crateSpec,uv).xyz;
 
-   float dist=length(sLight.pos-TanSpacepos);
+   float dist=length(sLight.pos-viewPos);
    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
-   vec3 sLightDir = normalize( sLight.pos - TanSpacepos );
+   vec3 sLightDir = normalize( sLight.pos - viewPos );
 
    vec3 ambCol = sLight.ambCol * objectCol * sLight.ambFac;
    ambCol = ambCol * atten;
