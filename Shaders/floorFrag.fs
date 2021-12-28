@@ -85,7 +85,7 @@ void main()
 	}
 	else
 	{
-		vec3 norm = normalize(normal);
+		norm=texture(floorNorm,uv).xyz;
 	}
 	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
 	vec3 result=vec3(0.0);

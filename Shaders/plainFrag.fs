@@ -87,7 +87,7 @@ void main()
    }
    else
    {
-       norm = normalize(normal);
+       norm = texture(crateNorm,uv).xyz;
    }
 	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
 	vec3 result=vec3(0.0);

@@ -12,7 +12,7 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform vec3 lightDirection;
 uniform vec3 viewPos;
-mat3 invTBN;
+mat3 TBN;
 
 out vec3 normal ;
 out vec3 TanSpacepos;
@@ -29,14 +29,14 @@ void main()
     normal=(model*vec4(aNormals,0.0)).xyz;
     vec3 T=(model*vec4(tangent,0.0)).xyz;
     vec3 B=(model*vec4(perpBisector,0.0)).xyz;
-    invTBN = mat3(T ,B ,normal);
+    TBN = mat3(T ,B ,normal);
 
-    invTBN = transpose(invTBN);
+   // invTBN = transpose(invTBN);
   //  TanSpacepos=WSpos;
-    TanSpacepos=WSpos*invTBN;
-    tanLightDirection=lightDirection*invTBN;
-    tanViewPos=viewPos*invTBN;
+    TanSpacepos=WSpos*TBN;
+    tanLightDirection=lightDirection*TBN;
+    tanViewPos=viewPos*TBN;
 
-    normal=normal*invTBN;
+   // normal=normal*TBN;
     uv=UVcoords;
 }
