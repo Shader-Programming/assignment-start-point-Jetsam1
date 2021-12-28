@@ -276,7 +276,7 @@ int main()
 	    shader.setMat4("projection", projection);
 		shader.setMat4("view", view);
 		shader.setMat4("model", model);
-		shader.setVec3("viewPos", camera.Position);
+		shader.setVec3("viewPos", camera.Front);
 		shader.setBool("map", map);
 	
 		floorShader.setMat4("projection", projection);

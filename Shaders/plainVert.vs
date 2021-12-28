@@ -32,10 +32,11 @@ void main()
     vec3 N=normalize(vec3(model*vec4(aNormals,0.0)));
     mat3 TBN =transpose(mat3(T ,B ,N));
  //  normal=normal*TBN;
- // TanSpacepos=TBN* vec3(model * vec4(aPos,1.0));
- TanSpacepos=WSpos;
- // tanLightDirection =TBN*lightDirection;
- tanLightDirection =lightDirection;
+  TanSpacepos=TBN* vec3(model * vec4(aPos,1.0));
+ //TanSpacepos=WSpos;
+  tanLightDirection =TBN*lightDirection;
+ //
+// tanLightDirection =lightDirection;
   tanViewPos=TBN*viewPos;
     uv=UVcoords;
 }
