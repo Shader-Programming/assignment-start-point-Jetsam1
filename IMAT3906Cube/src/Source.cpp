@@ -86,8 +86,7 @@ float cubeVertices[] = {
 		   0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
 		  -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
 };
-normalMapper normalMap.calctanandbinorm(cubeVertices, (sizeof(cubeVertices)) / 4, cubeIndices, sizeof(cubeIndices) / 4);
-std::vector<float> updatedCubeVertices = normalMap.getVertexData();
+
 
 
 unsigned int cubeIndices[] = {
@@ -124,8 +123,8 @@ float floorVertices[] = {
 		 floorSize, floorLevel,  floorSize, 0.0, 1.0, 0.0, 1.0f,1.0f,
 		-floorSize, floorLevel,  floorSize, 0.0, 1.0, 0.0, 0.0f,1.0f
 };
-normalMapper nMap.calctanandbinorm(floorVertices, sizeof(floorVertices) / 4, floorIndices, sizeof(floorIndices) / 4);
-std::vector<float> updatedFloorVertices = nMap.getVertexData();
+
+
 /*
 float floorVertices[] = {
 		 -5.f, -5.f,  -5.f, 0.0, 1.0, 0.0,   0.0f, 0.0f,
@@ -188,8 +187,12 @@ int main()
 	// Cube
 
 
+	normalMap.calctanandbinorm(cubeVertices, (sizeof(cubeVertices)) / 4, cubeIndices, sizeof(cubeIndices) / 4);
+	std::vector<float> updatedCubeVertices = normalMap.getVertexData();
 
 
+	nMap.calctanandbinorm(floorVertices, sizeof(floorVertices) / 4, floorIndices, sizeof(floorIndices) / 4);
+	std::vector<float> updatedFloorVertices = nMap.getVertexData();
 
 	glGenVertexArrays(1, &cubeVAO);
 	glGenBuffers(1, &cubeVBO);

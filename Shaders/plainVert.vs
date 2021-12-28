@@ -32,8 +32,8 @@ void main()
     vec3 T=(model*vec4(tangent,0.0)).xyz;
     vec3 B=(model*vec4(perpBisector,0.0)).xyz;
     mat3 TBN=mat3(T ,B ,normal);
-    invTBN=inverse(TBN);
-    lightDirection=
+    invTBN=transpose(TBN);
+  //  lightDirection=
    //invTBN=TBN;
     uv=UVcoords;
 }
