@@ -224,7 +224,7 @@ int main()
 	floorShader.setVec3("lightCol", lightColour);
 	floorShader.setVec3("lightDirection", lightDir);
 	
-
+	
 	glEnable(GL_DEPTH_TEST);
 
 	while (!glfwWindowShouldClose(window))
