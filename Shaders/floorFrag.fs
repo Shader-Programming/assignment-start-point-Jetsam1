@@ -8,7 +8,7 @@ in vec2 uv;
 in vec3 tanLightDirection;
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
-vec3 GetPointLight(vec3 norm,vec3 viewDir);
+vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 viewPos);
 vec3 GetSpotLight(vec3 norm,vec3 viewDir);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 
@@ -69,8 +69,8 @@ uniform bool map;
 float ambientFactor = 0.5f;
 float shine = 150.f;
 float specularStrength = 0.2f;
-float Brightness=0.15f;
-float sharpness =300.f;
+float Brightness=0.015f;
+float sharpness =50.f;
 
 //vec3 colour = vec3(0.2f,0.5f,0.6f);
 void main()
@@ -91,15 +91,15 @@ void main()
 	vec3 result=vec3(0.0);
 	parallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
-	vec3 PointLightRes = GetPointLight(norm,viewDir);
+	vec3 PointLightRes = GetPointLight(norm,viewDir,TanSpacepos);
 	vec3 spotLightRes = GetSpotLight(norm,viewDir);
 
-	//Rim Lighting
+	//Rim Lighting come back to this
 	float dp = dot(norm , viewDir);
 	float Rim= (Brightness*pow((1-dp),sharpness));
 
 
-	result = dirLightRes + PointLightRes + spotLightRes +Rim;
+	result = dirLightRes + PointLightRes + spotLightRes;
 
    FragColor = vec4(result,1.f);
 }
@@ -132,7 +132,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 
 
 
-vec3 GetPointLight(vec3 norm,vec3 viewDir)
+vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 viewPos)
 {
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
 	vec3 specmapcol = texture(floorSpec,uv).xyz;

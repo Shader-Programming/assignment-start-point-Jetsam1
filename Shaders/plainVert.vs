@@ -18,6 +18,7 @@ out vec3 normal ;
 out vec3 TanSpacepos;
 out vec3 tanViewPos;
 out vec3 tanLightDirection;
+out vec3 WSpos;
 //out vec3 WSnorm;
 out vec2 uv;
 
@@ -25,14 +26,14 @@ out vec2 uv;
 void main()
 {  
     gl_Position = projection * view * model*vec4(aPos,1.0);
-    TanSpacepos= (model * vec4(aPos,1.0)).xyz;
+    WSpos= (model * vec4(aPos,1.0)).xyz;
     normal=(model*vec4(aNormals,0.0)).xyz;
     vec3 T=(model*vec4(tangent,0.0)).xyz;
     vec3 B=(model*vec4(perpBisector,0.0)).xyz;
     invTBN = mat3(T ,B ,normal);
-    invTBN = transpose(invTBN);
-   normal=normal*invTBN;
-  TanSpacepos=TanSpacepos*invTBN;
+ //  normal=normal*invTBN;
+//  TanSpacepos=WSpos*invTBN;
+   TanSpacepos=WSpos;
   tanLightDirection = lightDirection*invTBN;
   tanViewPos=viewPos*invTBN;
     uv=UVcoords;
