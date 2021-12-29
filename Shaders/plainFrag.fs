@@ -97,8 +97,8 @@ void main()
 	parallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
 
-	vec3 PointLightRes = GetPointLight(norm,viewDir,TanSpacepos);
-	vec3 spotLightRes = GetSpotLight(norm,viewDir,TanSpacepos);
+	vec3 PointLightRes = GetPointLight(norm,viewDir,WSpos);
+	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSpos);
 
 	//Rim Lighting (come back to this)
 	float dp = dot(norm , viewDir);
