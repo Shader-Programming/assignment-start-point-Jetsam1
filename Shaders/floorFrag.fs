@@ -7,10 +7,11 @@ in vec2 uv;
 in vec3 TanSpacepos;
 in vec3 tanLightDirection;
 in vec3 tanViewPos;
+in vec3 WSPos;
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
-vec3 GetPointLight(vec3 norm,vec3 viewDir);
-vec3 GetSpotLight(vec3 norm,vec3 viewDir);
+vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos);
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
 
@@ -91,8 +92,8 @@ void main()
 	vec3 result=vec3(0.0);
 	parallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
-	vec3 PointLightRes = GetPointLight(norm,viewDir);
-	vec3 spotLightRes = GetSpotLight(norm,viewDir);
+	vec3 PointLightRes = GetPointLight(norm,viewDir,WSPos);
+	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSPos);
 
 	//Rim Lighting
 	float dp = dot(norm , viewDir);
@@ -132,14 +133,14 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 
 
 
-vec3 GetPointLight(vec3 norm,vec3 viewDir)
+vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 {
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
 	vec3 specmapcol = texture(floorSpec,uv).xyz;
 
-   float dist=length(pLight.position-TanSpacepos);
+   float dist=length(pLight.position-FragPos);
    float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
-   vec3 pLightDir = normalize( pLight.position - TanSpacepos );
+   vec3 pLightDir = normalize( pLight.position - FragPos );
 
    vec3 ambCol = pLight.ambientCol * diffmapcol* pLight.ambFac;
    ambCol = ambCol * atten;
@@ -162,14 +163,14 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir)
 	return pointlightRes;
 }
 
-vec3 GetSpotLight(vec3 norm,vec3 viewDir)
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 {
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
 	vec3 specmapcol = texture(floorSpec,uv).xyz;
 
-   float dist=length(sLight.pos-TanSpacepos);
+   float dist=length(sLight.pos-FragPos);
    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
-   vec3 sLightDir = normalize( sLight.pos - TanSpacepos );
+   vec3 sLightDir = normalize( sLight.pos - FragPos );
 
    vec3 ambCol = sLight.ambCol * objectCol * sLight.ambFac;
    ambCol = ambCol * atten;
