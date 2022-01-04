@@ -32,6 +32,10 @@ void processInput(GLFWwindow *window);
 
 unsigned int loadTexture(char const* path);
 void loadTextureFiles();
+void setFBOcolour();
+void createQuad();
+void drawQuad(Shader& shader, unsigned int textureObj);
+void setShader(Shader& shader);
 // camera
 Camera camera(glm::vec3(0,0,9));
 float lastX = SCR_WIDTH / 2.0f;
@@ -39,7 +43,7 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 //arrays
-unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
+unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,colourAttachment,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
 
 normalMapper normalCubeMap;
 normalMapper normalFloorMap;
@@ -47,6 +51,7 @@ normalMapper normalFloorMap;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 bool map = false;;
+
 
 // cube data
 float cubeVertices[] = {
@@ -165,9 +170,9 @@ int main()
 
 	// simple vertex and fragment shader 
 	Shader shader("..\\shaders\\plainVert.vs", "..\\shaders\\plainFrag.fs");
-	Shader floorShader("..\\shaders\\plainvert.vs", "..\\shaders\\floorFrag.fs");
-	shader.use();
-	floorShader.use();
+	Shader floorShader("..\\shaders\\floorVert.vs", "..\\shaders\\floorFrag.fs");
+	Shader postProcess("..\\shaders\\PP.vs","..\\shaders\\PP.fs");
+
 
 
 	/*VAO stuff  - when you are comfortable what all of this is and what it is for - abstract to classes:
@@ -234,6 +239,7 @@ int main()
 	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(12 * sizeof(float)));
 	glEnableVertexAttribArray(4);
 
+	createQuad();
 	glm::vec3 lightDir = glm::vec3(1.f,-0.7f,0.0f);
 	glm::vec3 lightColour = glm::vec3(0.992f, 0.3687f, 0.3255f);
 	//glm::vec3 lightColour = glm::vec3(1.f, 1.f, 1.f);
@@ -248,7 +254,7 @@ int main()
 	floorShader.setVec3("lightDirection", lightDir);
 	
 
-	glEnable(GL_DEPTH_TEST);
+	setFBOcolour();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -257,10 +263,15 @@ int main()
 		lastFrame = currentFrame;
 
 		processInput(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
 
-		
+
+		glBindFramebuffer(GL_FRAMEBUFFER, myFBO);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+
+
+		shader.use();
 		shader.setInt("crateTex", 0);
 		shader.setInt("crateSpec", 1);
 		shader.setInt("crateNorm", 2);
@@ -278,71 +289,11 @@ int main()
 		shader.setMat4("model", model);
 		shader.setVec3("viewPos", camera.Position);
 		shader.setBool("map", map);
+
+
 	
-		floorShader.setMat4("projection", projection);
-		floorShader.setMat4("view", view);
-		floorShader.setMat4("model", model);
-		floorShader.setVec3("viewPos", camera.Position);
-		floorShader.setInt("map", map);
-		
-		
-		shader.setVec3("objectCol", cubeCol);
+		setShader(shader);
 
-
-		//setting uniforms for pointlight
-		shader.setVec3("pLight.position", glm::vec3(1, 0, 1));
-		shader.setVec3("pLight.ambientCol", glm::vec3(0.2349520849, 0.8563239901, 0.2733646522));
-		shader.setVec3("pLight.diffuseCol", glm::vec3(0.3123285777, 0.6348458802, 0.2858810024));
-		shader.setVec3("pLight.specularCol", glm::vec3(0.4622860781, 0.2729412403, 0.0480364033));
-		shader.setFloat("pLight.kC", 1.f);
-		shader.setFloat("pLight.lC", 0.5116701455f);
-		shader.setFloat("pLight.qC", 0.1815987919f);  
-		shader.setFloat("pLight.ambFac", 0.05f);
-		shader.setFloat("pLight.specShine", 50.f);
-		shader.setFloat("pLight.specStrength", 0.7);
-		
-		floorShader.setVec3("pLight.position", glm::vec3(1, 0, 1));
-		floorShader.setVec3("pLight.ambientCol", glm::vec3(0.2349520849, 0.8563239901, 0.2733646522));
-		floorShader.setVec3("pLight.diffuseCol", glm::vec3(0.3123285777, 0.6348458802, 0.2858810024));
-		floorShader.setVec3("pLight.specularCol", glm::vec3(0.4622860781, 0.2729412403, 0.0480364033));
-		floorShader.setFloat("pLight.kC", 1.f);
-		floorShader.setFloat("pLight.lC", 0.5116701455f);
-		floorShader.setFloat("pLight.qC", 0.1815987919f);
-		floorShader.setFloat("pLight.ambFac", 0.05f);
-		floorShader.setFloat("pLight.specShine", 50.f);
-		floorShader.setFloat("pLight.specStrength", 0.7);
-		
-		
-		//setting uniforms for spotLight
-		shader.setVec3("sLight.pos", glm::vec3(0.f,10.f,-5.f));
-		shader.setVec3("sLight.dir", glm::vec3(0.f,-1,0.f));
-		shader.setVec3("sLight.ambCol", glm::vec3(0.f,0.f,0.f));
-		shader.setVec3("sLight.diffCol", glm::vec3(1.f,1.f,0.f));
-		shader.setVec3("sLight.specCol", glm::vec3(1.f,1.f,0.f));
-		shader.setFloat("sLight.kC", 1.f);
-		shader.setFloat("sLight.lC", 0.05f);
-		shader.setFloat("sLight.qC", 0.002f);
-		shader.setFloat("sLight.inRad", glm::cos(glm::radians(10.f)));
-		shader.setFloat("sLight.outRad", glm::cos(glm::radians(10.f)));
-		shader.setFloat("sLight.ambFac", 0.f);
-		shader.setFloat("sLight.specShine", 100.f);
-		shader.setFloat("sLight.specStrength", 0.4);
-		shader.setFloat("PXscale", 0.0175);
-
-		floorShader.setVec3("sLight.pos", glm::vec3(0.f, 10.f, -5.f));
-		floorShader.setVec3("sLight.dir", glm::vec3(0.f, -1, 0.f));
-		floorShader.setVec3("sLight.ambCol", glm::vec3(0.f, 0.f, 0.f));
-		floorShader.setVec3("sLight.diffCol", glm::vec3(1.f, 1.f, 0.f));
-		floorShader.setVec3("sLight.specCol", glm::vec3(1.f, 1.f, 0.f));
-		floorShader.setFloat("sLight.kC", 1.f);
-		floorShader.setFloat("sLight.lC", 0.05f);
-		floorShader.setFloat("sLight.qC", 0.002f);
-		floorShader.setFloat("sLight.inRad", glm::cos(glm::radians(10.f)));
-		floorShader.setFloat("sLight.outRad", glm::cos(glm::radians(10.f)));
-		floorShader.setFloat("sLight.ambFac", 0.f);
-		floorShader.setFloat("sLight.specShine", 100.f);
-		floorShader.setFloat("sLight.specStrength", 0.4);
-		floorShader.setFloat("PXscale", 0.0175);
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, crateTex);
@@ -350,6 +301,8 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, crateSpec);
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, crateNorm);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, crateDisp);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);   // what happens if we change to GL_LINE?
 		glBindVertexArray(cubeVAO);  // bind and draw cube
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
@@ -367,6 +320,16 @@ int main()
 		shader.setMat4("model", model);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
+		floorShader.use();
+
+
+		floorShader.setMat4("projection", projection);
+		floorShader.setMat4("view", view);
+		floorShader.setMat4("model", model);
+		floorShader.setVec3("viewPos", camera.Position);
+		floorShader.setInt("map", map);
+		setShader(floorShader);
+
 
 		floorShader.setInt("floorTex", 4);
 		floorShader.setInt("floorSpec", 5);
@@ -376,15 +339,24 @@ int main()
 		model = glm::mat4(1.0f);
 		floorShader.setMat4("model", model);
 		floorShader.setVec3("objectCol", floorCol);
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, floorTex);
 		glActiveTexture(GL_TEXTURE4);
-		glBindTexture(GL_TEXTURE_2D, floorSpec);
+		glBindTexture(GL_TEXTURE_2D, floorTex);
 		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_2D, floorSpec);
+		glActiveTexture(GL_TEXTURE6);
 		glBindTexture(GL_TEXTURE_2D, floorNorm);
+		glActiveTexture(GL_TEXTURE7);
+		glBindTexture(GL_TEXTURE_2D, floorDisp);
 		glBindVertexArray(floorVAO);  // bind and draw floor
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	
+
+
+
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+		drawQuad(postProcess, colourAttachment);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -506,5 +478,79 @@ void loadTextureFiles()
 	floorDisp= loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_DISP.png");
 }
 
+void setFBOcolour()
+{
+	glGenFramebuffers(1, &myFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, myFBO);
+	glGenTextures(1, &colourAttachment);
+	glBindTexture(GL_TEXTURE_2D, colourAttachment);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourAttachment, 0);
+}
+
+void createQuad()
+{
+	float quadVertices[] =
+	{
+		-1.0f, 1.0f,0.0f,0.0f,1.0f,
+		-1.0f,-1.0f,0.0f,0.0f,0.0f,
+		1.0f,1.0f,0.0f,1.0f,1.0f,
+		1.0f,-1.0f,0.0f,1.0f,0.0f
+	};
+	glGenVertexArrays(1, &quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3* sizeof(float)));
+}
+
+void drawQuad(Shader& shader, unsigned int textureObj)
+{
+	shader.use();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureObj);
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+}
+
+void setShader(Shader& shader)
+{
+
+
+
+	shader.setVec3("sLight.pos", glm::vec3(0.f, 10.f, -5.f));
+	shader.setVec3("sLight.dir", glm::vec3(0.f, -1, 0.f));
+	shader.setVec3("sLight.ambCol", glm::vec3(0.f, 0.f, 0.f));
+	shader.setVec3("sLight.diffCol", glm::vec3(1.f, 1.f, 0.f));
+	shader.setVec3("sLight.specCol", glm::vec3(1.f, 1.f, 0.f));
+	shader.setFloat("sLight.kC", 1.f);
+	shader.setFloat("sLight.lC", 0.05f);
+	shader.setFloat("sLight.qC", 0.002f);
+	shader.setFloat("sLight.inRad", glm::cos(glm::radians(10.f)));
+	shader.setFloat("sLight.outRad", glm::cos(glm::radians(10.f)));
+	shader.setFloat("sLight.ambFac", 0.f);
+	shader.setFloat("sLight.specShine", 100.f);
+	shader.setFloat("sLight.specStrength", 0.4);
+	shader.setFloat("PXscale", 0.0175);
+
+	shader.setVec3("pLight.position", glm::vec3(1, 0, 1));
+	shader.setVec3("pLight.ambientCol", glm::vec3(0.2349520849, 0.8563239901, 0.2733646522));
+	shader.setVec3("pLight.diffuseCol", glm::vec3(0.3123285777, 0.6348458802, 0.2858810024));
+	shader.setVec3("pLight.specularCol", glm::vec3(0.4622860781, 0.2729412403, 0.0480364033));
+	shader.setFloat("pLight.kC", 1.f);
+	shader.setFloat("pLight.lC", 0.5116701455f);
+	shader.setFloat("pLight.qC", 0.1815987919f);
+	shader.setFloat("pLight.ambFac", 0.05f);
+	shader.setFloat("pLight.specShine", 50.f);
+	shader.setFloat("pLight.specStrength", 0.7);
+}
 
 
