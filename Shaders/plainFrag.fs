@@ -13,6 +13,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
 vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos);
 vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
+vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
 
 
 struct pointLight
@@ -92,7 +93,8 @@ void main()
    }
 	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
-	parallaxMapping(uv,viewDir);
+	//parallaxMapping(uv,viewDir);
+	SteepParallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
 	vec3 PointLightRes = GetPointLight(norm,viewDir,WSPos);
 	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSPos);
@@ -207,4 +209,29 @@ vec2 parallaxMapping(vec2 uv,vec3 viewDir)
 {
 	float height = texture(crateDisp,uv).r;
 	return uv-(viewDir.xy)*(height *PXscale);
+}
+
+vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir)
+{
+	float numLayers = 10;
+	float layerDepth = 1.0 / numLayers;
+	float currentLayerDepth = 0.0;
+	vec2 P = viewDir.xy * PXscale;
+	vec2 deltaTexCoords = P /numLayers;
+	vec2 currentTexCoords = uv;
+	float currentDepthMapValue = texture(crateDisp,currentTexCoords).r;
+	while(currentLayerDepth<currentDepthMapValue)
+	{
+		currentTexCoords -=deltaTexCoords;
+		currentDepthMapValue = texture(crateDisp,currentTexCoords).r;
+		currentLayerDepth+= layerDepth;
+	}
+	vec2 prevTexCoords= currentTexCoords +deltaTexCoords;
+
+	float postDepth=currentDepthMapValue -currentLayerDepth;
+	float preDepth=texture(crateDisp,prevTexCoords).r -currentLayerDepth +layerDepth;
+
+	float weight=postDepth /(postDepth - preDepth);
+	vec2 finalCoords= prevTexCoords *weight* currentTexCoords*(1.0 - weight);
+	return finalCoords;
 }
