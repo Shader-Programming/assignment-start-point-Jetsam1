@@ -33,9 +33,12 @@ void processInput(GLFWwindow *window);
 unsigned int loadTexture(char const* path);
 void loadTextureFiles();
 void setFBOcolour();
+void setFBODepth();
 void createQuad();
 void drawQuad(Shader& shader, unsigned int textureObj);
 void setShader(Shader& shader);
+void renderCubes(Shader& shader);
+void renderPlane(Shader& shader);
 // camera
 Camera camera(glm::vec3(0,0,9));
 float lastX = SCR_WIDTH / 2.0f;
@@ -43,7 +46,7 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 //arrays
-unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,colourAttachment,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
+unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,colourAttachment,depthAttachment,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
 
 normalMapper normalCubeMap;
 normalMapper normalFloorMap;
@@ -172,6 +175,7 @@ int main()
 	Shader shader("..\\shaders\\plainVert.vs", "..\\shaders\\plainFrag.fs");
 	Shader floorShader("..\\shaders\\floorVert.vs", "..\\shaders\\floorFrag.fs");
 	Shader postProcess("..\\shaders\\PP.vs","..\\shaders\\PP.fs");
+	Shader depthPP("..\\shaders\\PP.vs", "..\\shaders\\dPP.fs");
 
 
 
@@ -255,6 +259,7 @@ int main()
 	
 
 	setFBOcolour();
+	setFBODepth();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -265,98 +270,26 @@ int main()
 		processInput(window);
 
 
-
 		glBindFramebuffer(GL_FRAMEBUFFER, myFBO);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		glEnable(GL_DEPTH_TEST);
 
-
-		shader.use();
-		shader.setInt("crateTex", 0);
-		shader.setInt("crateSpec", 1);
-		shader.setInt("crateNorm", 2);
-		shader.setInt("crateDisp", 3);
-	
-
-		// MVP 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
-		glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 model = glm::mat4(1.0f);
-		// set uniforms - why do we set this each frame?
-
-	    shader.setMat4("projection", projection);
-		shader.setMat4("view", view);
-		shader.setMat4("model", model);
-		shader.setVec3("viewPos", camera.Position);
-		shader.setBool("map", map);
-
-
-	
-		setShader(shader);
-
+		renderCubes(shader);
+		renderPlane(floorShader);
 		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, crateTex);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, crateSpec);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, crateNorm);
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, crateDisp);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);   // what happens if we change to GL_LINE?
-		glBindVertexArray(cubeVAO);  // bind and draw cube
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-		model = glm::translate(model, glm::vec3(0.f, 0.f, 5.f));
-		shader.setMat4("model", model);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.f, 0.f, -5.f));
-		//model = glm::rotate(model, (float)glfwGetTime()*10000.f, glm::vec3(10.f, 10.f, 10.f));
-		model = glm::rotate(model, (float)glfwGetTime()*.25f, glm::vec3(10.f, 10.f, 10.f));
-		model = glm::scale(model, glm::vec3(5));
-
-		shader.setMat4("model", model);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-		floorShader.use();
-
-
-		floorShader.setMat4("projection", projection);
-		floorShader.setMat4("view", view);
-		floorShader.setMat4("model", model);
-		floorShader.setVec3("viewPos", camera.Position);
-		floorShader.setInt("map", map);
-		setShader(floorShader);
-
-
-		floorShader.setInt("floorTex", 4);
-		floorShader.setInt("floorSpec", 5);
-		floorShader.setInt("floorNorm", 6);
-		floorShader.setInt("floorDisp", 7);
 	
-		model = glm::mat4(1.0f);
-		floorShader.setMat4("model", model);
-		floorShader.setVec3("objectCol", floorCol);
-		glActiveTexture(GL_TEXTURE4);
-		glBindTexture(GL_TEXTURE_2D, floorTex);
-		glActiveTexture(GL_TEXTURE5);
-		glBindTexture(GL_TEXTURE_2D, floorSpec);
-		glActiveTexture(GL_TEXTURE6);
-		glBindTexture(GL_TEXTURE_2D, floorNorm);
-		glActiveTexture(GL_TEXTURE7);
-		glBindTexture(GL_TEXTURE_2D, floorDisp);
-		glBindVertexArray(floorVAO);  // bind and draw floor
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_depth);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+		renderCubes(shader);
+		renderPlane(floorShader);
 
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
-		drawQuad(postProcess, colourAttachment);
+		drawQuad(depthPP, depthAttachment);
+		//drawQuad(postProcess, colourAttachment);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -489,6 +422,33 @@ void setFBOcolour()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourAttachment, 0);
+
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer not complete." << std::endl;
+	}
+}
+
+void setFBODepth()
+{
+	glGenFramebuffers(1, &FBO_depth);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO_depth);
+	glGenTextures(1, &depthAttachment);
+	glBindTexture(GL_TEXTURE_2D, depthAttachment);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthAttachment, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void createQuad()
@@ -551,6 +511,92 @@ void setShader(Shader& shader)
 	shader.setFloat("pLight.ambFac", 0.05f);
 	shader.setFloat("pLight.specShine", 50.f);
 	shader.setFloat("pLight.specStrength", 0.7);
+}
+void renderCubes(Shader& shader)
+{
+	shader.use();
+	shader.setInt("crateTex", 0);
+	shader.setInt("crateSpec", 1);
+	shader.setInt("crateNorm", 2);
+	shader.setInt("crateDisp", 3);
+
+
+	// MVP 
+	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+	glm::mat4 view = camera.GetViewMatrix();
+	glm::mat4 model = glm::mat4(1.0f);
+	// set uniforms - why do we set this each frame?
+
+	shader.setMat4("projection", projection);
+	shader.setMat4("view", view);
+	shader.setMat4("model", model);
+	shader.setVec3("viewPos", camera.Position);
+	shader.setBool("map", map);
+
+
+
+	setShader(shader);
+
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, crateTex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, crateSpec);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, crateNorm);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, crateDisp);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);   // what happens if we change to GL_LINE?
+	glBindVertexArray(cubeVAO);  // bind and draw cube
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+	model = glm::translate(model, glm::vec3(0.f, 0.f, 5.f));
+	shader.setMat4("model", model);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.f, 0.f, -5.f));
+	//model = glm::rotate(model, (float)glfwGetTime()*10000.f, glm::vec3(10.f, 10.f, 10.f));
+	model = glm::rotate(model, (float)glfwGetTime() * .25f, glm::vec3(10.f, 10.f, 10.f));
+	model = glm::scale(model, glm::vec3(5));
+
+	shader.setMat4("model", model);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+}
+void renderPlane(Shader& shader)
+{
+	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+	glm::mat4 view = camera.GetViewMatrix();
+	glm::mat4 model = glm::mat4(1.0f);
+
+	shader.use();
+
+
+	shader.setMat4("projection", projection);
+	shader.setMat4("view", view);
+	shader.setMat4("model", model);
+	shader.setVec3("viewPos", camera.Position);
+	shader.setInt("map", map);
+	setShader(shader);
+
+
+	shader.setInt("floorTex", 4);
+	shader.setInt("floorSpec", 5);
+	shader.setInt("floorNorm", 6);
+	shader.setInt("floorDisp", 7);
+
+	model = glm::mat4(1.0f);
+	shader.setMat4("model", model);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, floorTex);
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, floorSpec);
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, floorNorm);
+	glActiveTexture(GL_TEXTURE7);
+	glBindTexture(GL_TEXTURE_2D, floorDisp);
+	glBindVertexArray(floorVAO);  // bind and draw floor
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 
