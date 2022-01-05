@@ -26,9 +26,9 @@ void main()
 {  
     gl_Position = projection * view * model*vec4(aPos,1.0);
     WSPos= (model * vec4(aPos,1.0)).xyz; 
-    normal=(model*vec4(aNormals,0.0)).xyz;
-    vec3 T=(model*vec4(tangent,0.0)).xyz;
-    vec3 B=(model*vec4(perpBisector,0.0)).xyz;
+    normal=normalize((model*vec4(aNormals,0.0)).xyz);
+    vec3 T=normalize((model*vec4(tangent,0.0)).xyz);
+    vec3 B=normalize((model*vec4(perpBisector,0.0)).xyz);
     TBN =mat3(T ,B ,normal);
 
    TBN = transpose(TBN);

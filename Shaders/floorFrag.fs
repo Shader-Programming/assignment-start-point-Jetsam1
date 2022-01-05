@@ -67,7 +67,7 @@ uniform sampler2D floorDisp;
 uniform float PXscale;
 
 uniform bool map;
-float ambientFactor = 0.5f;
+float ambientFactor = 0.3f;
 float shine = 100.f;
 float specularStrength = 0.2f;
 float Brightness=0.15f;
@@ -87,8 +87,8 @@ void main()
 	//parallaxMapping(uv,viewDir);
 	SteepParallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
-	vec3 PointLightRes = GetPointLight(norm,viewDir,WSPos);
-	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSPos);
+	vec3 PointLightRes = GetPointLight(norm,viewDir,TanSpacepos);
+	vec3 spotLightRes = GetSpotLight(norm,viewDir,TanSpacepos);
 
 	//Rim Lighting
 	float dp = dot(norm , viewDir);

@@ -9,9 +9,9 @@ in vec3 tanLightDirection;
 in vec3 tanViewPos;
 in vec3 WSPos;
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
-vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos);
-vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos);
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 diffCol);
+vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos,vec3 diffCol);
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos,vec3 diffCol);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
 
@@ -59,7 +59,7 @@ uniform spotLight sLight;
 
 
 uniform vec3 lightCol;
-uniform vec3 objectCol;
+
 
 
 uniform float PXscale;
@@ -70,8 +70,8 @@ uniform sampler2D crateDisp;
 
 uniform bool map;
 
-float ambientFactor = 0.5f;
-float shine = 250.f;
+float ambientFactor = 0.2f;
+float shine = 200.f;
 float specularStrength = 0.1f;
 float Brightness=0.015f;
 float sharpness =50.f;
@@ -81,37 +81,38 @@ void main()
 {   
 
    vec3 norm =vec3(0.0);
-
+   vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
+   vec2 texCoords=	SteepParallaxMapping(uv,viewDir);
+   vec3 diffuse = texture(crateTex,texCoords).xyz;
+   norm = texture(crateNorm,texCoords).xyz;
    
-       norm = texture(crateNorm,uv).xyz;
-   
-	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
+;
 	vec3 result=vec3(0.0);
 	//parallaxMapping(uv,viewDir);
-	SteepParallaxMapping(uv,viewDir);
-	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
-	vec3 PointLightRes = GetPointLight(norm,viewDir,WSPos);
-	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSPos);
+
+	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,diffuse);
+	vec3 PointLightRes = GetPointLight(norm,viewDir,TanSpacepos,diffuse);
+	vec3 spotLightRes = GetSpotLight(norm,viewDir,TanSpacepos,diffuse);
 
 	//Rim Lighting
 	float dp = dot(norm , viewDir);
 	float Rim= (Brightness*pow((1-dp),sharpness));
 
 
-	result = dirLightRes + PointLightRes + spotLightRes ;
+	result = dirLightRes + PointLightRes + spotLightRes;
 
    FragColor = vec4(result,1.f);
    }
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 diffCol)
 {
-	vec3 diffmapcol=texture(crateTex,uv).xyz;
+	
 	vec3 specmapcol = texture(crateSpec,uv).xyz;
-    vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
+    vec3 ambientColour = lightCol * diffCol * ambientFactor;
 
     float diffuseFactor = dot(norm,-tanLightDirection);
     diffuseFactor = max(diffuseFactor,0.0f);
-    vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
+    vec3 diffuseColour = lightCol*diffCol*diffuseFactor;
 
 
    // vec3 reflectDir = reflect(tanLightDirection,norm);
@@ -130,21 +131,21 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
    return result;
 }
 
-vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
+vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos,vec3 diffCol)
 {
-	vec3 diffmapcol=texture(crateTex,uv).xyz;
+	
 	vec3 specmapcol = texture(crateSpec,uv).xyz;
 
    float dist=length(pLight.position-FragPos);
    float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
    vec3 pLightDir = normalize( pLight.position - FragPos );
 
-   vec3 ambCol = pLight.ambientCol * diffmapcol* pLight.ambFac;
+   vec3 ambCol = pLight.ambientCol * diffCol* pLight.ambFac;
    ambCol = ambCol * atten;
 
     float diffuseFactor = dot( norm , pLightDir );
     diffuseFactor = max( diffuseFactor , 0.0f );
-    vec3 diffuseColour = pLight.diffuseCol * diffmapcol * diffuseFactor;
+    vec3 diffuseColour = pLight.diffuseCol * diffCol * diffuseFactor;
 	diffuseColour = diffuseColour * atten;
 
 	
@@ -160,21 +161,21 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 	return pointlightRes;
 }
 
-vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos,vec3 diffCol)
 {
-	vec3 diffmapcol=texture(crateTex,uv).xyz;
+	
 	vec3 specmapcol = texture(crateSpec,uv).xyz;
 
    float dist=length(sLight.pos-FragPos);
    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
    vec3 sLightDir = normalize( sLight.pos - FragPos );
 
-   vec3 ambCol = sLight.ambCol * objectCol * sLight.ambFac;
+   vec3 ambCol = sLight.ambCol * diffCol * sLight.ambFac;
    ambCol = ambCol * atten;
 
     float diffuseFactor = dot( norm , sLightDir );
     diffuseFactor = max( diffuseFactor , 0.0f );
-    vec3 diffuseColour = sLight.diffCol * diffmapcol * diffuseFactor;
+    vec3 diffuseColour = sLight.diffCol * diffCol * diffuseFactor;
 	diffuseColour = diffuseColour * atten;
 
 	
@@ -207,7 +208,7 @@ vec2 parallaxMapping(vec2 uv,vec3 viewDir)
 
 vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir)
 {
-	float numLayers = 10;
+	float numLayers = 100;
 	float layerDepth = 1.0 / numLayers;
 	float currentLayerDepth = 0.0;
 	vec2 P = viewDir.xy * PXscale;
