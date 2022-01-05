@@ -67,11 +67,11 @@ void normalMapper::getValues(unsigned int* indicesdata, int indicesLength)
 		glm::vec2 duv1 = v1.uv - v0.uv;
 		glm::vec2 duv2 = v2.uv - v0.uv;
 
-		float determinant = (duv1.x * duv2.y) - (duv1.y * duv2.x); //find the determinant of the matrix cause 
-		if (determinant != 0)
-		{
-			glm::vec3 calctan = (d1 * duv2.y - d2 * duv1.y) * (1 / determinant);
-			glm::vec3 calcbiNorm = (1 / determinant) * (d2 * duv1.x - d1 * duv2.x);
+		float determinant = 1.0f/(duv1.x * duv2.y - duv1.y * duv2.x); //find the determinant of the matrix cause 
+		
+		
+			glm::vec3 calctan = (d1 * duv2.y - d2 * duv1.y) * (determinant);
+			glm::vec3 calcbiNorm = (d2 * duv1.x - d1 * duv2.x)*(determinant);
 
 			v0.tan = v0.tan + calctan;
 			v0.binorm = v0.binorm + calcbiNorm;
@@ -82,26 +82,16 @@ void normalMapper::getValues(unsigned int* indicesdata, int indicesLength)
 			v2.tan = v2.tan + calctan;
 			v2.binorm = v2.binorm + calcbiNorm;
 
-			for (Vertex& V : vertices)
-			{
-				V.tan = glm::normalize(V.tan);
-				V.binorm = glm::normalize(V.tan);
-			}
-		}
-		
-		else
-		{
-			v0.tan = v0.tan; 
-			v0.binorm = v0.binorm;
 
-			v1.tan = v1.tan;
-			v1.binorm = v1.binorm;
 
-			v2.tan = v2.tan;
-			v2.binorm = v2.binorm;
-		}
 
 		
 
 	}
+	for (Vertex& V : vertices)
+	{
+		V.tan = glm::normalize(V.tan);
+		V.binorm = glm::normalize(V.binorm);
+	}
+
 }

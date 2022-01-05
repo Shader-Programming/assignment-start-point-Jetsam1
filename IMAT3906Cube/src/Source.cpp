@@ -30,7 +30,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-unsigned int loadTexture(char const* path);
+unsigned int loadTexture(const char* path);
 void loadTextureFiles();
 void setFBOcolour();
 void setFBODepth();
@@ -151,10 +151,10 @@ int main()
 		glfwTerminate();
 		return -1;
 	}
-	normalCubeMap.calctanandbinorm(cubeVertices, (768), cubeIndices, (36));
-	std::vector<float>updatedVertexData = normalCubeMap.getVertexData();
+	normalCubeMap.calctanandbinorm(cubeVertices, (192), cubeIndices, (36));
+	std::vector<float>updatedCubeData = normalCubeMap.getVertexData();
 
-	normalFloorMap.calctanandbinorm(floorVertices, (128), floorIndices, 6);
+	normalFloorMap.calctanandbinorm(floorVertices, (32), floorIndices, 6);
 	std::vector<float>updatedFloorData = normalFloorMap.getVertexData();
 
 	glfwMakeContextCurrent(window);
@@ -191,7 +191,7 @@ int main()
 	glBindVertexArray(cubeVAO);
 	// fill VBO with vertex data
 	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-	glBufferData(GL_ARRAY_BUFFER, updatedVertexData.size(), updatedVertexData.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, updatedCubeData.size()*sizeof(float), updatedCubeData.data(), GL_STATIC_DRAW);
 	// fill EBO with index data
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
@@ -220,7 +220,7 @@ int main()
 	glBindVertexArray(floorVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
-	glBufferData(GL_ARRAY_BUFFER, updatedFloorData.size(), updatedFloorData.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, updatedFloorData.size()*sizeof(float), updatedFloorData.data(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, floorEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(floorIndices), floorIndices, GL_STATIC_DRAW);
@@ -288,8 +288,8 @@ int main()
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
-		drawQuad(depthPP, depthAttachment);
-		//drawQuad(postProcess, colourAttachment);
+		//drawQuad(depthPP, depthAttachment);
+		drawQuad(postProcess, colourAttachment);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -360,7 +360,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	camera.ProcessMouseScroll(yoffset);
 }
 
-unsigned int loadTexture(char const* path)
+unsigned int loadTexture(const char* path)
 {
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
