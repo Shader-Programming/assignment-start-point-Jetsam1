@@ -68,7 +68,7 @@ uniform float PXscale;
 
 uniform bool map;
 float ambientFactor = 0.5f;
-float shine = 150.f;
+float shine = 100.f;
 float specularStrength = 0.2f;
 float Brightness=0.15f;
 float sharpness =300.f;
@@ -77,17 +77,11 @@ float sharpness =300.f;
 void main()
 {   
 	vec3 norm=vec3(0.0);
-	if(map==true)
-	{
+
+	
 	
 		norm=texture(floorNorm,uv).xyz;
-		norm=norm*2 -1;
-		norm=normalize(norm);
-	}
-	else
-	{
-		norm=texture(floorNorm,uv).xyz;
-	}
+	
 	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
 	//parallaxMapping(uv,viewDir);

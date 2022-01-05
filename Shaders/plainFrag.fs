@@ -71,8 +71,8 @@ uniform sampler2D crateDisp;
 uniform bool map;
 
 float ambientFactor = 0.5f;
-float shine = 150.f;
-float specularStrength = 0.2f;
+float shine = 250.f;
+float specularStrength = 0.1f;
 float Brightness=0.015f;
 float sharpness =50.f;
 
@@ -81,16 +81,10 @@ void main()
 {   
 
    vec3 norm =vec3(0.0);
-   if(map==true)
-   {
-   norm = texture(crateNorm,uv).xyz;
-   norm=norm*2 -1;
-   norm=normalize(norm);
-   }
-   else
-   {
+
+   
        norm = texture(crateNorm,uv).xyz;
-   }
+   
 	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
 	//parallaxMapping(uv,viewDir);
