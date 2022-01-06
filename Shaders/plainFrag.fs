@@ -9,9 +9,9 @@ in vec3 tanLightDirection;
 in vec3 tanViewPos;
 in vec3 WSPos;
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 diffCol);
-vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos,vec3 diffCol);
-vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos,vec3 diffCol);
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 TexCoords);
+vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 TexCoords);
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 TexCoords);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
 
@@ -90,9 +90,9 @@ void main()
 	vec3 result=vec3(0.0);
 	//parallaxMapping(uv,viewDir);
 
-	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,diffuse);
-	vec3 PointLightRes = GetPointLight(norm,viewDir,TanSpacepos,diffuse);
-	vec3 spotLightRes = GetSpotLight(norm,viewDir,TanSpacepos,diffuse);
+	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,tanLightDirection,texCoords);
+	vec3 PointLightRes = GetPointLight(norm,viewDir,WSPos,texCoords);
+	vec3 spotLightRes = GetSpotLight(norm,viewDir,sLight.dir,texCoords);
 
 	//Rim Lighting
 	float dp = dot(norm , viewDir);
@@ -104,10 +104,10 @@ void main()
    FragColor = vec4(result,1.f);
    }
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 diffCol)
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 TexCoords)
 {
-	
-	vec3 specmapcol = texture(crateSpec,uv).xyz;
+	vec3 diffCol= texture(crateTex,TexCoords).rgb;
+	vec3 specmapcol = texture(crateSpec,TexCoords).xyz;
     vec3 ambientColour = lightCol * diffCol * ambientFactor;
 
     float diffuseFactor = dot(norm,-tanLightDirection);
@@ -124,17 +124,18 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 diffCol)
    specularFactor = pow(specularFactor,shine);
 
 
-   vec3 SpecColour = lightCol  * specmapcol * specularFactor;
+   vec3 SpecColour = lightCol  * specmapcol * specularFactor*specularStrength;
 
    vec3 result = ambientColour + diffuseColour+ SpecColour;
 
    return result;
 }
 
-vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos,vec3 diffCol)
+vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos,vec2 TexCoords)
 {
-	
-	vec3 specmapcol = texture(crateSpec,uv).xyz;
+	vec3 diffCol= texture(crateTex,TexCoords).rgb;
+
+	vec3 specmapcol = texture(crateSpec,TexCoords).xyz;
 
    float dist=length(pLight.position-FragPos);
    float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
@@ -161,10 +162,10 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos,vec3 diffCol)
 	return pointlightRes;
 }
 
-vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos,vec3 diffCol)
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos,vec2 TexCoords)
 {
-	
-	vec3 specmapcol = texture(crateSpec,uv).xyz;
+	vec3 diffCol= texture(crateTex,TexCoords).rgb;
+	vec3 specmapcol = texture(crateSpec,TexCoords).xyz;
 
    float dist=length(sLight.pos-FragPos);
    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
