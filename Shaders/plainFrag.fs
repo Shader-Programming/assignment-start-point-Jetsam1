@@ -181,7 +181,7 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)
    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
    vec3 sLightDir = normalize( sLight.pos - FragPos );
 
-   vec3 ambCol = sLight.ambCol * objectCol * sLight.ambFac;
+   vec3 ambCol = sLight.ambCol * diffmapcol * sLight.ambFac;
    ambCol = ambCol * atten;
 
     float diffuseFactor = dot( norm , sLightDir );
@@ -238,6 +238,6 @@ vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir)
 	float preDepth=texture(crateDisp,prevTexCoords).r -currentLayerDepth +layerDepth;
 
 	float weight=postDepth /(postDepth - preDepth);
-	vec2 finalCoords= prevTexCoords *weight* currentTexCoords*(1.0 - weight);
+	vec2 finalCoords= prevTexCoords *weight + currentTexCoords*(1.0 - weight);
 	return finalCoords;
 }

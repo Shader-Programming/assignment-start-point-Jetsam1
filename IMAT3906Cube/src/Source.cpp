@@ -35,6 +35,7 @@ void loadTextureFiles();
 void setFBOcolour();
 void setFBODepth();
 void setFBOcolourAndDepth();
+void setFBOblur();
 void createQuad();
 void drawQuad(Shader& shader, unsigned int textureObj);
 void setShader(Shader& shader);
@@ -47,7 +48,7 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 //arrays
-unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,FBO_cAndD,colourAttachment,cAttachment[2],depthAttachment,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
+unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,FBO_cAndD,FBO_blur,colourAttachment,cAttachment[2],depthAttachment,blurredTex,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
 
 normalMapper normalCubeMap;
 normalMapper normalFloorMap;
@@ -258,10 +259,15 @@ int main()
 	floorShader.use();
 	floorShader.setVec3("lightCol", lightColour);
 	floorShader.setVec3("lightDirection", lightDir);
+	postProcess.use();
+	postProcess.setInt("image", 0);
+	blurShader.use();
+	blurShader.setInt("image", 0);
 	
 
 	//setFBOcolour();
 	//setFBODepth();
+	setFBOblur();
 	setFBOcolourAndDepth();
 
 	while (!glfwWindowShouldClose(window))
@@ -282,13 +288,21 @@ int main()
 		renderCubes(shader);
 		renderPlane(floorShader);
 		
-	;
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur);
+		glEnable(GL_DEPTH_TEST);
 
+		blurShader.use();
+		blurShader.setBool("horz", true);
+		drawQuad(blurShader, cAttachment[0]);
+		blurShader.setBool("horz", false);
+		drawQuad(blurShader, blurredTex);
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
 		//drawQuad(depthPP, depthAttachment);
-		drawQuad(postProcess , cAttachment[1]);
+		drawQuad(postProcess , cAttachment[0]);
+		if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+			drawQuad(postProcess, blurredTex);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -485,6 +499,19 @@ void setFBOcolourAndDepth()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
+}
+void setFBOblur()
+{
+	glGenFramebuffers(1, &FBO_blur);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur);
+	glGenTextures(1, &blurredTex);
+
+
+	glBindTexture(GL_TEXTURE_2D, blurredTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, blurredTex, 0);
 }
 
 void createQuad()
