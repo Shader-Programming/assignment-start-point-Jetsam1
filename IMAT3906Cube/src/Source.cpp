@@ -302,20 +302,26 @@ int main()
 		renderCubes(shader);
 		renderPlane(floorShader);
 
+		glDisable(GL_DEPTH_TEST);
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_depth);
+		drawQuad(depthPP, depthAttachment);
+
+		renderCubes(shader);
+		renderPlane(floorShader);
 		//blurring
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur);
-		glDisable(GL_DEPTH_TEST);
+
 		blurShader.use();
 		blurShader.setBool("horz", true);
 		drawQuad(blurShader, cAttachment[1]);
 		blurShader.setBool("horz", false);
 		drawQuad(blurShader, blurredTex);
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		drawQuad(depthPP, depthAttachment);
-		//drawQuad(bloomShader , cAttachment[0],blurredTex);
-		drawQuad(DoFshader, cAttachment[0], blurredTex, depthAttachment);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		DoFshader.use();
+		drawQuad(bloomShader , cAttachment[0],blurredTex);
+		//drawQuad(DoFshader, cAttachment[0], blurredTex, depthAttachment);
 		if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
 			drawQuad(postProcess, blurredTex);
 		glfwSwapBuffers(window);
