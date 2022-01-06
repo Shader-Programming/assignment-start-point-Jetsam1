@@ -222,12 +222,13 @@ vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir)
 		currentDepthMapValue = texture(crateDisp,currentTexCoords).r;
 		currentLayerDepth+= layerDepth;
 	}
+	//return currentTexCoords;
 	vec2 prevTexCoords= currentTexCoords +deltaTexCoords;
-
+	
 	float postDepth=currentDepthMapValue -currentLayerDepth;
 	float preDepth=texture(crateDisp,prevTexCoords).r -currentLayerDepth +layerDepth;
-
+	
 	float weight=postDepth /(postDepth - preDepth);
-	vec2 finalCoords= prevTexCoords *weight* currentTexCoords*(1.0 - weight);
+	vec2 finalCoords= prevTexCoords *weight + currentTexCoords*(1.0 - weight);
 	return finalCoords;
 }
