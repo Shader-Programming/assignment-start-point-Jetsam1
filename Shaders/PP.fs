@@ -8,5 +8,7 @@ in vec2 uv;
 
 void main()
 {
-	fragColour =texture(image,uv);
+	vec3 result=texture(image,uv).rgb;
+	result=result/(result+vec3(1.0f));
+	fragColour=vec4(result,1.0);
 }

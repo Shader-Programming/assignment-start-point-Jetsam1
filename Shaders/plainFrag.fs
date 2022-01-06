@@ -1,6 +1,6 @@
 #version 410 core
 
-out vec4 FragColor;
+//out vec4 FragColor;
 
 in vec3 normal;
 in vec2 uv;
@@ -15,7 +15,8 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
 
-
+layout(location=0) out vec4 FragColor;
+layout(location=1) out vec4 sceneBrightCol;
 struct pointLight
 {
 	vec3 position;
@@ -71,7 +72,7 @@ uniform sampler2D crateDisp;
 uniform bool map;
 
 float ambientFactor = 0.5f;
-float shine = 250.f;
+float shine = 150.f;
 float specularStrength = 0.1f;
 float Brightness=0.015f;
 float sharpness =50.f;
@@ -101,7 +102,18 @@ void main()
 	result = dirLightRes + PointLightRes + spotLightRes ;
 
    FragColor = vec4(result,1.f);
+
+   float sceneBright=max(max(result.x,result.y),result.z);
+   if(sceneBright>0.3)
+   {
+		  sceneBrightCol=FragColor;
    }
+   else
+   {
+		  sceneBrightCol=vec4(vec3(0.0),1.0);
+   }
+
+}
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 {
@@ -123,7 +135,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
    specularFactor = pow(specularFactor,shine);
 
 
-   vec3 SpecColour = lightCol  * specmapcol * specularFactor;
+   vec3 SpecColour = lightCol  * specmapcol * specularFactor*specularStrength;
 
    vec3 result = ambientColour + diffuseColour+ SpecColour;
 
@@ -152,7 +164,7 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 	float specularFactor = dot( halfDir , norm );
 	specularFactor = max( specularFactor , 0.0 );
 	specularFactor = pow( specularFactor , pLight.specShine );
-	vec3 SpecColour = pLight.specCol  * specmapcol * specularFactor;
+	vec3 SpecColour = pLight.specCol  * specmapcol * specularFactor* specularStrength;
 	SpecColour = SpecColour * atten;
 
 	vec3 pointlightRes= ambCol+diffuseColour+SpecColour;

@@ -1,6 +1,6 @@
 #version 410 core
 
-out vec4 FragColor;
+//out vec4 FragColor;
 
 in vec3 normal;
 in vec2 uv;
@@ -15,6 +15,9 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
 
+
+layout(location=0) out vec4 FragColor;
+layout(location=1) out vec4 sceneBrightCol;
 
 struct pointLight
 {
@@ -98,6 +101,16 @@ void main()
 	result = dirLightRes + PointLightRes + spotLightRes ;
 
    FragColor = vec4(result,1.f);
+   
+   float sceneBright=max(max(result.x,result.y),result.z);
+   if(sceneBright>0.55)
+   {
+		  sceneBrightCol=FragColor;
+   }
+   else
+   {
+		  sceneBrightCol=vec4(vec3(0.0),1.0);
+   }
 }
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)

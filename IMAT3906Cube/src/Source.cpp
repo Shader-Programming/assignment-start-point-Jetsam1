@@ -177,6 +177,7 @@ int main()
 	Shader floorShader("..\\shaders\\floorVert.vs", "..\\shaders\\floorFrag.fs");
 	Shader postProcess("..\\shaders\\PP.vs","..\\shaders\\PP.fs");
 	Shader depthPP("..\\shaders\\PP.vs", "..\\shaders\\dPP.fs");
+	Shader blurShader("..\\shaders\\PP.vs", "..\\shaders\\blur.fs");
 
 
 
@@ -259,8 +260,9 @@ int main()
 	floorShader.setVec3("lightDirection", lightDir);
 	
 
-	setFBOcolour();
-	setFBODepth();
+	//setFBOcolour();
+	//setFBODepth();
+	setFBOcolourAndDepth();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -272,9 +274,10 @@ int main()
 
 
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO_cAndD);
+		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glEnable(GL_DEPTH_TEST);
+
 
 		renderCubes(shader);
 		renderPlane(floorShader);
@@ -285,7 +288,7 @@ int main()
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
 		//drawQuad(depthPP, depthAttachment);
-		drawQuad(postProcess, cAttachment[0]);
+		drawQuad(postProcess , cAttachment[1]);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
