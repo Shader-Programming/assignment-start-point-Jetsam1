@@ -38,6 +38,7 @@ void setFBOcolourAndDepth();
 void setFBOblur();
 void createQuad();
 void drawQuad(Shader& shader, unsigned int textureObj);
+void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj);
 void setShader(Shader& shader);
 void renderCubes(Shader& shader);
 void renderPlane(Shader& shader);
@@ -179,6 +180,7 @@ int main()
 	Shader postProcess("..\\shaders\\PP.vs","..\\shaders\\PP.fs");
 	Shader depthPP("..\\shaders\\PP.vs", "..\\shaders\\dPP.fs");
 	Shader blurShader("..\\shaders\\PP.vs", "..\\shaders\\blur.fs");
+	Shader bloomShader("..\\shaders\\PP.vs", "..\\shaders\\bloom.fs");
 
 
 
@@ -259,10 +261,15 @@ int main()
 	floorShader.use();
 	floorShader.setVec3("lightCol", lightColour);
 	floorShader.setVec3("lightDirection", lightDir);
+	depthPP.use();
+	depthPP.setInt("image", 0);
 	postProcess.use();
 	postProcess.setInt("image", 0);
 	blurShader.use();
 	blurShader.setInt("image", 0);
+	bloomShader.use();
+	bloomShader.setInt("image", 0);
+	bloomShader.setInt("bloomBlur", 1);
 	
 
 	//setFBOcolour();
@@ -287,20 +294,19 @@ int main()
 
 		renderCubes(shader);
 		renderPlane(floorShader);
-		
+		//blurring
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur);
-		glEnable(GL_DEPTH_TEST);
-
+		glDisable(GL_DEPTH_TEST);
 		blurShader.use();
 		blurShader.setBool("horz", true);
-		drawQuad(blurShader, cAttachment[0]);
+		drawQuad(blurShader, cAttachment[1]);
 		blurShader.setBool("horz", false);
 		drawQuad(blurShader, blurredTex);
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDisable(GL_DEPTH_TEST);
+
 		//drawQuad(depthPP, depthAttachment);
-		drawQuad(postProcess , cAttachment[0]);
+		drawQuad(bloomShader , cAttachment[0],blurredTex);
 		if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
 			drawQuad(postProcess, blurredTex);
 		glfwSwapBuffers(window);
@@ -539,6 +545,17 @@ void drawQuad(Shader& shader, unsigned int textureObj)
 	shader.use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureObj);
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+}
+void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj)
+{
+	shader.use();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureObj);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, Texobj);
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
