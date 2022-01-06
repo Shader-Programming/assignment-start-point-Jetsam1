@@ -88,10 +88,10 @@ void normalMapper::getValues(unsigned int* indicesdata, int indicesLength)
 		
 
 	}
+
 	for (Vertex& V : vertices)
 	{
 		V.tan = glm::normalize(V.tan);
 		V.binorm = glm::normalize(V.binorm);
 	}
-
 }

@@ -34,6 +34,7 @@ unsigned int loadTexture(const char* path);
 void loadTextureFiles();
 void setFBOcolour();
 void setFBODepth();
+void setFBOcolourAndDepth();
 void createQuad();
 void drawQuad(Shader& shader, unsigned int textureObj);
 void setShader(Shader& shader);
@@ -46,7 +47,7 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 //arrays
-unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,colourAttachment,depthAttachment,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
+unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,FBO_cAndD,colourAttachment,cAttachment[2],depthAttachment,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
 
 normalMapper normalCubeMap;
 normalMapper normalFloorMap;
@@ -270,7 +271,7 @@ int main()
 		processInput(window);
 
 
-		glBindFramebuffer(GL_FRAMEBUFFER, myFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_cAndD);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glEnable(GL_DEPTH_TEST);
@@ -278,18 +279,13 @@ int main()
 		renderCubes(shader);
 		renderPlane(floorShader);
 		
-	
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO_depth);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		renderCubes(shader);
-		renderPlane(floorShader);
+	;
 
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
 		//drawQuad(depthPP, depthAttachment);
-		drawQuad(postProcess, colourAttachment);
+		drawQuad(postProcess, cAttachment[0]);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -416,12 +412,16 @@ void setFBOcolour()
 	glGenFramebuffers(1, &myFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, myFBO);
 	glGenTextures(1, &colourAttachment);
-	glBindTexture(GL_TEXTURE_2D, colourAttachment);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourAttachment, 0);
+	
+		glBindTexture(GL_TEXTURE_2D, colourAttachment);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourAttachment, 0);
+	
+
+
 
 	unsigned int rbo;
 	glGenRenderbuffers(1, &rbo);
@@ -449,6 +449,39 @@ void setFBODepth()
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void setFBOcolourAndDepth()
+{
+	glGenFramebuffers(1, &FBO_cAndD);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO_cAndD);
+
+	glGenTextures(2, cAttachment);
+	for (int i = 0; i < 2; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, cAttachment[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, cAttachment[i], 0);
+	}
+
+	glGenTextures(1, &depthAttachment);
+	glBindTexture(GL_TEXTURE_2D, depthAttachment);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthAttachment, 0);
+	
+	unsigned int attachment[2] = { GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, attachment);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 }
 
 void createQuad()
