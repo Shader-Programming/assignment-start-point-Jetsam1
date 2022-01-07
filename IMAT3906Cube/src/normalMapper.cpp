@@ -1,5 +1,3 @@
-
-
 #include "normalMapper.h"
 
 normalMapper::normalMapper()
@@ -80,12 +78,7 @@ void normalMapper::getValues(unsigned int* indicesdata, int indicesLength)
 			v1.binorm = v1.binorm + calcbiNorm;
 
 			v2.tan = v2.tan + calctan;
-			v2.binorm = v2.binorm + calcbiNorm;
-
-
-
-
-		
+			v2.binorm = v2.binorm + calcbiNorm;	
 
 	}
 

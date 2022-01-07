@@ -11,7 +11,8 @@ void main()
 {             
  
     float depth = texture(depthMap,uv).r ;
-    FragColor = vec4(vec3(LinearizeDepth(depth) / far_plane), 1.0); // perspective
+    FragColor=vec4(vec3(depth),1.0);
+  //  FragColor = vec4(vec3(LinearizeDepth(depth) / far_plane), 1.0); // perspective
     
 }
 

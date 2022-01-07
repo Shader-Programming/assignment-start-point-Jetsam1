@@ -104,7 +104,7 @@ void main()
    FragColor = vec4(result,1.f);
 
    float sceneBright=max(max(result.x,result.y),result.z);
-   if(sceneBright>0.95)
+   if(sceneBright>1)
    {
 		  sceneBrightCol=FragColor;
    }

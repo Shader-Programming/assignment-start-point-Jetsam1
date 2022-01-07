@@ -36,6 +36,7 @@ void setFBOcolour();
 void setFBODepth();
 void setFBOcolourAndDepth();
 void setFBOblur();
+void setShadowMapFBO();
 void createQuad();
 void drawQuad(Shader& shader, unsigned int textureObj);
 void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj);
@@ -50,7 +51,8 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 //arrays
-unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,FBO_cAndD,FBO_blur,colourAttachment,cAttachment[2],depthAttachment,blurredTex,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
+unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,FBO_cAndD,FBO_blur,colourAttachment,cAttachment[2],depthAttachment,blurredTex,shadowMapFBO,shadowMap,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
+const unsigned int shadowWidth = 1024, shadowHeight = 1024;
 
 normalMapper normalCubeMap;
 normalMapper normalFloorMap;
@@ -183,6 +185,7 @@ int main()
 	Shader blurShader("..\\shaders\\PP.vs", "..\\shaders\\blur.fs");
 	Shader bloomShader("..\\shaders\\PP.vs", "..\\shaders\\bloom.fs");
 	Shader DoFshader("..\\shaders\\PP.vs", "..\\shaders\\DoF.fs");
+	Shader shadowMapshader("..\\shaders\\SM.vs", "..\\shaders\\SM.fs");
 
 
 
@@ -277,12 +280,17 @@ int main()
 	DoFshader.setInt("blur", 1);
 	DoFshader.setInt("depth", 2);
 
+
+	
+
+
 	
 
 	//setFBOcolour();
 	setFBODepth();
 	setFBOblur();
 	setFBOcolourAndDepth();
+	setShadowMapFBO();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -290,24 +298,27 @@ int main()
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+
+
+
 		processInput(window);
 
-
+/*
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO_cAndD);
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 
-		renderCubes(shader);
-		renderPlane(floorShader);
+		renderCubes(shader,projection,view,model);
+		renderPlane(floorShader,projection,view,model);
 
 		glDisable(GL_DEPTH_TEST);
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO_depth);
 		drawQuad(depthPP, depthAttachment);
 
-		renderCubes(shader);
-		renderPlane(floorShader);
+		renderCubes(shader, projection, view, model);
+		renderPlane(floorShader, projection, view, model);
 		//blurring
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur);
 
@@ -319,11 +330,31 @@ int main()
 		
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		DoFshader.use();
+		
 		drawQuad(bloomShader , cAttachment[0],blurredTex);
 		//drawQuad(DoFshader, cAttachment[0], blurredTex, depthAttachment);
 		if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
 			drawQuad(postProcess, blurredTex);
+
+			*/
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+		glEnable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glm::vec3 lightPos = lightDir * glm::vec3(-1); //start +(end-start)*scalar
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -10.f, 30.f);
+		glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+		shadowMapshader.use();
+		shadowMapshader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+		renderCubes(shadowMapshader);
+		renderPlane(shadowMapshader);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+		drawQuad(postProcess, shadowMap);
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -534,6 +565,25 @@ void setFBOblur()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, blurredTex, 0);
 }
+void setShadowMapFBO()
+{
+	glGenFramebuffers(1, &shadowMapFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glGenTextures(1, &shadowMap);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowWidth, shadowHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
 void createQuad()
 {
@@ -622,6 +672,10 @@ void setShader(Shader& shader)
 }
 void renderCubes(Shader& shader)
 {
+	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+	glm::mat4 view = camera.GetViewMatrix();
+	glm::mat4 model = glm::mat4(1.0f);
+
 	shader.use();
 	shader.setInt("crateTex", 0);
 	shader.setInt("crateSpec", 1);
@@ -630,9 +684,7 @@ void renderCubes(Shader& shader)
 
 
 	// MVP 
-	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
-	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 model = glm::mat4(1.0f);
+
 	// set uniforms - why do we set this each frame?
 
 	shader.setMat4("projection", projection);
@@ -673,6 +725,7 @@ void renderCubes(Shader& shader)
 }
 void renderPlane(Shader& shader)
 {
+
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 model = glm::mat4(1.0f);
@@ -703,6 +756,7 @@ void renderPlane(Shader& shader)
 	glBindTexture(GL_TEXTURE_2D, floorNorm);
 	glActiveTexture(GL_TEXTURE7);
 	glBindTexture(GL_TEXTURE_2D, floorDisp);
+
 	glBindVertexArray(floorVAO);  // bind and draw floor
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
