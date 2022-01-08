@@ -9,6 +9,7 @@ layout (location = 4) in vec2 UVcoords;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+
 uniform vec3 lightDirection;
 uniform vec3 viewPos;
 mat3 TBN;
@@ -18,6 +19,7 @@ out vec3 TanSpacepos;
 out vec3 tanLightDirection;
 out vec3 tanViewPos;
 out vec3 WSPos;
+
 out vec2 uv;
 
 
@@ -29,6 +31,7 @@ void main()
     vec3 T=(model*vec4(tangent,0.0)).xyz;
     vec3 B=(model*vec4(perpBisector,0.0)).xyz;
     TBN = mat3(T ,B ,normal);
+
 
     TBN = transpose(TBN);
   //  TanSpacepos=WSPos;

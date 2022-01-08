@@ -8,12 +8,15 @@ in vec3 TanSpacepos;
 in vec3 tanLightDirection;
 in vec3 tanViewPos;
 in vec3 WSPos;
+in mat4 lightSpaceMatrix;
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow);
 vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos);
 vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
+float calcShadow(vec4 lightSpacePos);
+
 
 layout(location=0) out vec4 FragColor;
 layout(location=1) out vec4 sceneBrightCol;
@@ -69,10 +72,12 @@ uniform sampler2D crateSpec;
 uniform sampler2D crateNorm;
 uniform sampler2D crateDisp;
 
+uniform sampler2D shadowMap;
+
 uniform bool map;
 
 float ambientFactor = 0.5f;
-float shine = 150.f;
+float shine = 10.f;
 float specularStrength = 0.1f;
 float Brightness=0.015f;
 float sharpness =50.f;
@@ -80,17 +85,16 @@ float sharpness =50.f;
 //vec3 colour = vec3(0.2f,0.5f,0.6f);
 void main()
 {   
-
-   vec3 norm =vec3(0.0);
-
-   
-       norm = texture(crateNorm,uv).xyz;
+    vec4 lightSpacePos = lightSpaceMatrix *vec4(WSPos,1.0);
+	float shadow=calcShadow(lightSpacePos);
+    vec3 norm =vec3(0.0);
+    norm = texture(crateNorm,uv).xyz;
    
 	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
 	//parallaxMapping(uv,viewDir);
-	SteepParallaxMapping(uv,viewDir);
-	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
+	vec2 texCoords=SteepParallaxMapping(uv,viewDir);
+	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,tanLightDirection,texCoords,shadow);
 	vec3 PointLightRes = GetPointLight(norm,viewDir,WSPos);
 	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSPos);
 
@@ -99,7 +103,7 @@ void main()
 	float Rim= (Brightness*pow((1-dp),sharpness));
 
 
-	result = dirLightRes + PointLightRes + spotLightRes ;
+	result = dirLightRes ;//+ PointLightRes + spotLightRes ;
 
    FragColor = vec4(result,1.f);
 
@@ -115,19 +119,19 @@ void main()
 
 }
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow)
 {
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	vec3 specmapcol = texture(crateSpec,uv).xyz;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
 
-    float diffuseFactor = dot(norm,-tanLightDirection);
+    float diffuseFactor = dot(norm,-lightDir);
     diffuseFactor = max(diffuseFactor,0.0f);
     vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
 
 
    // vec3 reflectDir = reflect(tanLightDirection,norm);
-   vec3 halfDir = normalize(tanLightDirection+viewDir);
+   vec3 halfDir = normalize(lightDir+viewDir);
    //float specularFactor = dot(viewDir,reflectDir);
    float specularFactor=dot(halfDir,norm);
   
@@ -137,7 +141,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
 
    vec3 SpecColour = lightCol  * specmapcol * specularFactor*specularStrength;
 
-   vec3 result = ambientColour + diffuseColour+ SpecColour;
+   vec3 result = ambientColour + (1.0-shadow)*(diffuseColour+ SpecColour);
 
    return result;
 }
@@ -240,4 +244,36 @@ vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir)
 	float weight=postDepth /(postDepth - preDepth);
 	vec2 finalCoords= prevTexCoords *weight + currentTexCoords*(1.0 - weight);
 	return finalCoords;
+}
+
+float calcShadow(vec4 lightSpacePos)
+{
+	vec3 projCoords = lightSpacePos.xyz/lightSpacePos.w;
+
+	projCoords=projCoords * 0.5 + 0.5;
+	float closestDepth = texture(shadowMap,projCoords.xy).r;
+
+	float currentDepth = projCoords.z;
+
+	float shadow =0;
+	if(currentDepth>closestDepth) shadow=1;
+	//float bias=0.015;
+	//vec2 texelSize=1.0/textureSize(shadowMap,0);
+	//for(int i=-1;i<3;i++)
+	//{
+	//	for(int j=-1;j<3;j++)
+	//	{
+	//		float pcf =texture(shadowMap,projCoords.xy+vec2(i,j)*texelSize).r;
+	//		if(currentDepth-bias>pcf)
+	//		{
+	//			shadow+=1;
+	//		}
+	//	}
+	//}
+	//shadow=shadow/16;
+	//if(projCoords.z>1.0)
+	//{
+	//	shadow =0.0;
+	//}
+	return shadow;
 }

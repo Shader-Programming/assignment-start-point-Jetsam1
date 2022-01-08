@@ -11,6 +11,7 @@
 
 #include "Shader.h"
 #include "Camera.h"
+#include "SkyBox.h"
 
 #include<string>
 #include <iostream>
@@ -44,12 +45,13 @@ void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj,unsig
 void setShader(Shader& shader);
 void renderCubes(Shader& shader);
 void renderPlane(Shader& shader);
+void renderScene(Shader& shader, Shader& floorShader, Shader& skyBoxShader, Camera& cam);
 // camera
 Camera camera(glm::vec3(0,0,9));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
-
+SkyBox skybox;
 //arrays
 unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,FBO_cAndD,FBO_blur,colourAttachment,cAttachment[2],depthAttachment,blurredTex,shadowMapFBO,shadowMap,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
 const unsigned int shadowWidth = 1024, shadowHeight = 1024;
@@ -127,7 +129,7 @@ unsigned int cubeIndices[] = {
 
 
 float floorSize = 5.0f;
-float floorLevel = -2.0f;
+float floorLevel = -2.5f;
 
 float floorVertices[] = {
 		 -floorSize, floorLevel,  -floorSize, 0.0, 1.0, 0.0,   0.0f, 0.0f,
@@ -186,6 +188,7 @@ int main()
 	Shader bloomShader("..\\shaders\\PP.vs", "..\\shaders\\bloom.fs");
 	Shader DoFshader("..\\shaders\\PP.vs", "..\\shaders\\DoF.fs");
 	Shader shadowMapshader("..\\shaders\\SM.vs", "..\\shaders\\SM.fs");
+	Shader sbShader("..\\shaders\\skyBoxShader.vs", "..\\shaders\\skyBoxShader.fs");
 
 
 
@@ -253,8 +256,10 @@ int main()
 	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(12 * sizeof(float)));
 	glEnableVertexAttribArray(4);
 
+	skybox.createSkyBox();
 	createQuad();
-	glm::vec3 lightDir = glm::vec3(1.f,-0.7f,0.0f);
+	//glm::vec3 lightDir = glm::vec3(1.f,-0.7f,0.0f);
+		glm::vec3 lightDir = glm::vec3(0.f,-0.7f,-1.0f);
 	glm::vec3 lightColour = glm::vec3(0.992f, 0.3687f, 0.3255f);
 	//glm::vec3 lightColour = glm::vec3(1.f, 1.f, 1.f);
 	loadTextureFiles();
@@ -292,69 +297,108 @@ int main()
 	setFBOcolourAndDepth();
 	setShadowMapFBO();
 
+	glm::vec3 lightPos = lightDir * glm::vec3(-1); //start +(end-start)*scalar
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -10.f, 20.f);
+	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+	shadowMapshader.use();
+	shadowMapshader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+	shader.use();
+	shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+	floorShader.use();
+	floorShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-
-
-
-
 		processInput(window);
 
-/*
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO_cAndD);
-		glEnable(GL_DEPTH_TEST);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-
-		renderCubes(shader,projection,view,model);
-		renderPlane(floorShader,projection,view,model);
-
-		glDisable(GL_DEPTH_TEST);
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO_depth);
-		drawQuad(depthPP, depthAttachment);
-
-		renderCubes(shader, projection, view, model);
-		renderPlane(floorShader, projection, view, model);
-		//blurring
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur);
-
-		blurShader.use();
-		blurShader.setBool("horz", true);
-		drawQuad(blurShader, cAttachment[1]);
-		blurShader.setBool("horz", false);
-		drawQuad(blurShader, blurredTex);
+		//renderScene(shader, floorShader, sbShader, camera);
+		//
+		//
+		//
+		//glBindFramebuffer(GL_FRAMEBUFFER, FBO_cAndD);
+		//glEnable(GL_DEPTH_TEST);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//
+		//
+		//
+		//renderScene(shader, floorShader, sbShader, camera);
+		//
+		//glDisable(GL_DEPTH_TEST);
+		//glBindFramebuffer(GL_FRAMEBUFFER, FBO_depth);
+		//drawQuad(depthPP, depthAttachment);
+		//
+		//renderScene(shader, floorShader, sbShader, camera);
+		//
+		////blurring
+		//glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur);
+		//
+		//blurShader.use();
+		//blurShader.setBool("horz", true);
+		//drawQuad(blurShader, cAttachment[1]);
+		//blurShader.setBool("horz", false);
+		//drawQuad(blurShader, blurredTex);
+		//
+		//
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//
+		//drawQuad(bloomShader , cAttachment[0],blurredTex);
+		////drawQuad(DoFshader, cAttachment[0], blurredTex, depthAttachment);
+		//if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+		//	drawQuad(postProcess, blurredTex);
 		
+			
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		
-		drawQuad(bloomShader , cAttachment[0],blurredTex);
-		//drawQuad(DoFshader, cAttachment[0], blurredTex, depthAttachment);
-		if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
-			drawQuad(postProcess, blurredTex);
-
-			*/
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+		glViewport(0, 0, shadowWidth, shadowHeight);
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glm::vec3 lightPos = lightDir * glm::vec3(-1); //start +(end-start)*scalar
-		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -10.f, 30.f);
-		glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-		shadowMapshader.use();
-		shadowMapshader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
+		
+		
+		
 		renderCubes(shadowMapshader);
 		renderPlane(shadowMapshader);
-
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDisable(GL_DEPTH_TEST);
-		drawQuad(postProcess, shadowMap);
+		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+		
+		
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		shader.use();
+		shader.setInt("shadowMap", 4);
+		floorShader.use();
+		floorShader.setInt("shadowMap", 4);
+		
+		
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, shadowMap);
+		
+		renderScene(shader, floorShader, sbShader, camera);
+		//renderCubes(shader);
+		//renderPlane(floorShader);
 
+
+		
+		////SHADOW MAPS WORKING CORRECTLY
+		//glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+		//glEnable(GL_DEPTH_TEST);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//renderCubes(shadowMapshader);
+		//renderPlane(shadowMapshader);
+		//
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glDisable(GL_DEPTH_TEST);
+		//drawQuad(depthPP, shadowMap);
+		
+		
+		
+		
+		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -464,6 +508,8 @@ unsigned int loadTexture(const char* path)
 }
 
 
+
+
 void loadTextureFiles()
 {
 	crateTex = loadTexture("../Resources/Textures/Wood_Crate_001_SD/Wood_Crate_001_basecolor.jpg");
@@ -473,7 +519,7 @@ void loadTextureFiles()
 	floorTex = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_COLOR.jpg");
 	floorSpec = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_ROUGH.jpg");
 	floorNorm = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_NORM.jpg");
-	floorDisp= loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_DISP.png");
+	floorDisp = loadTexture("../Resources/Textures/Wood_Planks_010_SD/Wood_Planks_010_DISP.png"); 
 }
 
 void setFBOcolour()
@@ -741,24 +787,50 @@ void renderPlane(Shader& shader)
 	setShader(shader);
 
 
-	shader.setInt("floorTex", 4);
-	shader.setInt("floorSpec", 5);
-	shader.setInt("floorNorm", 6);
-	shader.setInt("floorDisp", 7);
+	shader.setInt("floorTex", 0);
+	shader.setInt("floorSpec", 1);
+	shader.setInt("floorNorm", 2);
+	shader.setInt("floorDisp", 3);
 
 	model = glm::mat4(1.0f);
 	shader.setMat4("model", model);
-	glActiveTexture(GL_TEXTURE4);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, floorTex);
-	glActiveTexture(GL_TEXTURE5);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, floorSpec);
-	glActiveTexture(GL_TEXTURE6);
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, floorNorm);
-	glActiveTexture(GL_TEXTURE7);
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, floorDisp);
 
 	glBindVertexArray(floorVAO);  // bind and draw floor
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+void renderScene(Shader& shader, Shader& floorShader, Shader& skyBoxShader, Camera& cam)
+{
+	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+	glm::mat4 view = camera.GetViewMatrix();
+	glm::mat4 model = glm::mat4(1.0f);
+
+	shader.use();
+	shader.setMat4("projection", projection);
+	shader.setMat4("view", view);
+	shader.setMat4("model", model);
+	shader.setVec3("viewPos", cam.Position);
+	
+	floorShader.use();
+	floorShader.setMat4("projection", projection);
+	floorShader.setMat4("view", view);
+	floorShader.setMat4("model", model);
+	floorShader.setVec3("viewPos", cam.Position);
+
+	skyBoxShader.use();
+	skyBoxShader.setMat4("projection", projection);
+	skyBoxShader.setMat4("view", glm::mat4(glm::mat3(cam.GetViewMatrix())));
+
+	skybox.renderSkyBox(skyBoxShader);
+	renderCubes(shader);
+	renderPlane(floorShader);
 }
 
 
