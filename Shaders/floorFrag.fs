@@ -98,7 +98,7 @@ void main()
 	vec3 result=vec3(0.0);
 	//parallaxMapping(uv,viewDir);
 	vec2 texCoords = SteepParallaxMapping(uv,viewDir);
-	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,WSPos,texCoords,shadow);
+	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,texCoords,shadow);
 	vec3 PointLightRes = GetPointLight(norm,viewDir,WSPos,pointLight,texCoords);
 	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSPos,spotLight,texCoords);
 
