@@ -103,7 +103,7 @@ void main()
 	float Rim= (Brightness*pow((1-dp),sharpness));
 
 
-	result = dirLightRes;// + PointLightRes + spotLightRes ;
+	result = dirLightRes + PointLightRes + spotLightRes ;
 
     FragColor = vec4(result,1.f);
    
@@ -121,11 +121,11 @@ void main()
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow)
 {	
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
-	vec3 specmapcol = texture(floorSpec,uv).xyz;
+	float specmapcol = texture(floorSpec,uv).x;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
 
     float diffuseFactor = dot(norm,-tanLightDirection);
-    diffuseFactor = max(diffuseFactor,0.0f);
+    diffuseFactor = max(diffuseFactor,1.0f);
     vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
 
 	// vec3 reflectDir = reflect(tanLightDirection,norm);
@@ -148,7 +148,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shad
 vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 {
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
-	vec3 specmapcol = texture(floorSpec,uv).xyz;
+	float specmapcol = texture(floorSpec,uv).x;
 
     float dist=length(pLight.position-FragPos);
     float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
@@ -178,7 +178,7 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 {
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
-	vec3 specmapcol = texture(floorSpec,uv).xyz;
+	float specmapcol = texture(floorSpec,uv).x;
 
     float dist=length(sLight.pos-FragPos);
     float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));

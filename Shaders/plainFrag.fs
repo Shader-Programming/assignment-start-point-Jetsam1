@@ -103,7 +103,7 @@ void main()
 	float Rim= (Brightness*pow((1-dp),sharpness));
 
 
-	result = dirLightRes ;//+ PointLightRes + spotLightRes ;
+	result = dirLightRes + PointLightRes + spotLightRes ;
 
    FragColor = vec4(result,1.f);
 
@@ -122,11 +122,11 @@ void main()
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow)
 {
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
-	vec3 specmapcol = texture(crateSpec,uv).xyz;
+	float specmapcol = texture(crateSpec,uv).x;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
 
     float diffuseFactor = dot(norm,-lightDir);
-    diffuseFactor = max(diffuseFactor,0.0f);
+    diffuseFactor = max(diffuseFactor,1.0f);
     vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
 
 
@@ -149,7 +149,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shad
 vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 {
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
-	vec3 specmapcol = texture(crateSpec,uv).xyz;
+	float specmapcol = texture(crateSpec,uv).x;
 
     float dist=length(pLight.position-FragPos);
     float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
@@ -179,7 +179,7 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 {
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
-	vec3 specmapcol = texture(crateSpec,uv).xyz;
+	float specmapcol = texture(crateSpec,uv).x;
 
     float dist=length(sLight.pos-FragPos);
     float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
@@ -256,24 +256,24 @@ float calcShadow(vec4 lightSpacePos)
 	float currentDepth = projCoords.z;
 
 	float shadow =0;
-	if(currentDepth>closestDepth) shadow=1;
-	//float bias=0.015;
-	//vec2 texelSize=1.0/textureSize(shadowMap,0);
-	//for(int i=-1;i<3;i++)
-	//{
-	//	for(int j=-1;j<3;j++)
-	//	{
-	//		float pcf =texture(shadowMap,projCoords.xy+vec2(i,j)*texelSize).r;
-	//		if(currentDepth-bias>pcf)
-	//		{
-	//			shadow+=1;
-	//		}
-	//	}
-	//}
-	//shadow=shadow/16;
-	//if(projCoords.z>1.0)
-	//{
-	//	shadow =0.0;
-	//}
+	//if(currentDepth>closestDepth) shadow=1;
+	float bias=0.015;
+	vec2 texelSize=1.0/textureSize(shadowMap,0);
+	for(int i=-1;i<3;i++)
+	{
+		for(int j=-1;j<3;j++)
+		{
+			float pcf =texture(shadowMap,projCoords.xy+vec2(i,j)*texelSize).r;
+			if(currentDepth-bias>pcf)
+			{
+				shadow+=1;
+			}
+		}
+	}
+	shadow=shadow/16;
+	if(projCoords.z>1.0)
+	{
+		shadow =0.0;
+	}
 	return shadow;
 }
