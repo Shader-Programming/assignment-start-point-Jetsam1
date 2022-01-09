@@ -151,12 +151,12 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	vec3 specmapcol = texture(crateSpec,uv).xyz;
 
-   float dist=length(pLight.position-FragPos);
-   float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
-   vec3 pLightDir = normalize( pLight.position - FragPos );
+    float dist=length(pLight.position-FragPos);
+    float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
+    vec3 pLightDir = normalize( pLight.position - FragPos );
 
-   vec3 ambCol = pLight.ambientCol * diffmapcol* pLight.ambFac;
-   ambCol = ambCol * atten;
+    vec3 ambCol = pLight.ambientCol * diffmapcol* pLight.ambFac;
+    ambCol = ambCol * atten;
 
     float diffuseFactor = dot( norm , pLightDir );
     diffuseFactor = max( diffuseFactor , 0.0f );
@@ -181,12 +181,12 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	vec3 specmapcol = texture(crateSpec,uv).xyz;
 
-   float dist=length(sLight.pos-FragPos);
-   float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
-   vec3 sLightDir = normalize( sLight.pos - FragPos );
+    float dist=length(sLight.pos-FragPos);
+    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
+    vec3 sLightDir = normalize( sLight.pos - FragPos );
 
-   vec3 ambCol = sLight.ambCol * diffmapcol * sLight.ambFac;
-   ambCol = ambCol * atten;
+    vec3 ambCol = sLight.ambCol * diffmapcol * sLight.ambFac;
+    ambCol = ambCol * atten;
 
     float diffuseFactor = dot( norm , sLightDir );
     diffuseFactor = max( diffuseFactor , 0.0f );

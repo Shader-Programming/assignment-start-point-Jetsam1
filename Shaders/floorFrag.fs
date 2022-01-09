@@ -105,17 +105,17 @@ void main()
 
 	result = dirLightRes;// + PointLightRes + spotLightRes ;
 
-   FragColor = vec4(result,1.f);
+    FragColor = vec4(result,1.f);
    
-   float sceneBright=max(max(result.x,result.y),result.z);
-   if(sceneBright>0.8)
-   {
+    float sceneBright=max(max(result.x,result.y),result.z);
+    if(sceneBright>0.8)
+    {
 		  sceneBrightCol=FragColor;
-   }
-   else
-   {
+    }
+    else
+    {
 		  sceneBrightCol=vec4(vec3(0.0),1.0);
-   }
+    }
 }
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow)
@@ -150,12 +150,12 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
 	vec3 specmapcol = texture(floorSpec,uv).xyz;
 
-   float dist=length(pLight.position-FragPos);
-   float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
-   vec3 pLightDir = normalize( pLight.position - FragPos );
+    float dist=length(pLight.position-FragPos);
+    float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
+    vec3 pLightDir = normalize( pLight.position - FragPos );
 
-   vec3 ambCol = pLight.ambientCol * diffmapcol* pLight.ambFac;
-   ambCol = ambCol * atten;
+    vec3 ambCol = pLight.ambientCol * diffmapcol* pLight.ambFac;
+    ambCol = ambCol * atten;
 
     float diffuseFactor = dot( norm , pLightDir );
     diffuseFactor = max( diffuseFactor , 0.0f );
@@ -180,12 +180,12 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
 	vec3 specmapcol = texture(floorSpec,uv).xyz;
 
-   float dist=length(sLight.pos-FragPos);
-   float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
-   vec3 sLightDir = normalize( sLight.pos - FragPos );
+    float dist=length(sLight.pos-FragPos);
+    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
+    vec3 sLightDir = normalize( sLight.pos - FragPos );
 
-   vec3 ambCol = sLight.ambCol * objectCol * sLight.ambFac;
-   ambCol = ambCol * atten;
+    vec3 ambCol = sLight.ambCol * objectCol * sLight.ambFac;
+    ambCol = ambCol * atten;
 
     float diffuseFactor = dot( norm , sLightDir );
     diffuseFactor = max( diffuseFactor , 0.0f );
