@@ -9,8 +9,8 @@ in vec3 WSPos;
 in mat4 lightSpaceMatrix;
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec2 uv,float shadow);
-vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos,pointLight pLight,vec2 uv);
-vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos,spotLight sLight,vec2 uv);
+vec3 GetPointLight( vec3 norm, vec3 viewDir, vec3 FragPos, pointLight pLight, vec2 uv);
+vec3 GetSpotLight( vec3 norm, vec3 viewDir, vec3 FragPos, spotLight sLight, vec2 uv);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
 float calcShadow(vec4 lightSpacePos);
