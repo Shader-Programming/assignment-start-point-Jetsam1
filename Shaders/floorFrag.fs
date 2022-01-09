@@ -131,7 +131,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shad
 	// vec3 reflectDir = reflect(tanLightDirection,norm);
     vec3 halfDir = normalize(lightDir+viewDir);
     //float specularFactor = dot(viewDir,reflectDir);
-    float specularFactor=dot(lightDir,norm);
+    float specularFactor=dot(halfDir,norm);
 
     specularFactor = max(specularFactor,0.0);
     specularFactor = pow(specularFactor,shine);
