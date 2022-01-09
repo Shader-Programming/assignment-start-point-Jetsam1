@@ -4,15 +4,13 @@
 
 in vec3 normal;
 in vec2 uv;
-in vec3 TanSpacepos;
-in vec3 tanLightDirection;
-in vec3 tanViewPos;
+in mat3 TBN
 in vec3 WSPos;
 in mat4 lightSpaceMatrix;
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow);
-vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos);
-vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos);
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec2 uv,float shadow);
+vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos,pointLight pLight,vec2 uv);
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos,spotLight sLight,vec2 uv);
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
 float calcShadow(vec4 lightSpacePos);
@@ -27,6 +25,7 @@ struct pointLight
 	vec3 ambientCol;
 	vec3 diffuseCol;
 	vec3 specCol;
+
 	float kC;
 	float lC;
 	float qC;
@@ -37,6 +36,7 @@ struct pointLight
 };
 
 uniform pointLight pLight;
+
 
 
 struct spotLight
@@ -70,6 +70,8 @@ uniform sampler2D floorSpec;
 uniform sampler2D floorNorm;
 uniform sampler2D floorDisp;
 uniform float PXscale;
+uniform vec3 viewPos;
+uniform vec3 lightDirection;
 
 uniform sampler2D shadowMap;
 
@@ -89,14 +91,15 @@ void main()
 
 	
 	norm=texture(floorNorm,uv).xyz;
-	
-	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
+	norm=2*norm-1;
+	norm=normalize(norm*TBN);
+	vec3 viewDir = (normalize(viewPos-WSPos));
 	vec3 result=vec3(0.0);
 	//parallaxMapping(uv,viewDir);
 	vec2 texCoords = SteepParallaxMapping(uv,viewDir);
-	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,tanLightDirection,texCoords,shadow);
-	vec3 PointLightRes = GetPointLight(norm,viewDir,WSPos);
-	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSPos);
+	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,WSPos,texCoords,shadow);
+	vec3 PointLightRes = GetPointLight(norm,viewDir,WSPos,pointLight,texCoords);
+	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSPos,spotLight,texCoords);
 
 	//Rim Lighting
 	float dp = dot(norm , viewDir);
@@ -118,18 +121,18 @@ void main()
     }
 }
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow)
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec2 uv,float shadow)
 {	
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
-	vec3 specmapcol = texture(floorSpec,uv).xyz;
+	float specmapcol = texture(floorSpec,uv).x;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
 
-    float diffuseFactor = dot(norm,-tanLightDirection);
-    diffuseFactor = max(diffuseFactor,0.0f);
+    float diffuseFactor = dot(norm,-lightDirection);
+    diffuseFactor = max(diffuseFactor,1.0f);
     vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
 
 	// vec3 reflectDir = reflect(tanLightDirection,norm);
-    vec3 halfDir = normalize(lightDir+viewDir);
+    vec3 halfDir = normalize(lightDirection+viewDir);
     //float specularFactor = dot(viewDir,reflectDir);
     float specularFactor=dot(halfDir,norm);
 
@@ -145,7 +148,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shad
 
 
 
-vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
+vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos,pointLight pLight,vec2 uv)
 {
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
 	vec3 specmapcol = texture(floorSpec,uv).xyz;
@@ -175,7 +178,7 @@ vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 	return pointlightRes;
 }
 
-vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos,spotLight sLight,vec2 uv)
 {
 	vec3 diffmapcol=texture(floorTex,uv).xyz;
 	vec3 specmapcol = texture(floorSpec,uv).xyz;
