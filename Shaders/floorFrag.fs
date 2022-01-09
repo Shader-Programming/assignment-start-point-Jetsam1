@@ -8,7 +8,7 @@ in vec3 TanSpacepos;
 in vec3 tanLightDirection;
 in vec3 tanViewPos;
 in vec3 WSPos;
-in mat4 lightSpaceMatrix;
+uniform mat4 lightSpaceMatrix;
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow);
 vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos);
@@ -77,8 +77,8 @@ uniform bool map;
 float ambientFactor = 0.5f;
 float shine = 100.f;
 float specularStrength = 0.2f;
-float Brightness=0.15f;
-float sharpness =300.f;
+float Brightness=0.015f;
+float sharpness =50.f;
 
 //vec3 colour = vec3(0.2f,0.5f,0.6f);
 void main()
@@ -124,7 +124,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shad
 	float specmapcol = texture(floorSpec,uv).x;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
 
-    float diffuseFactor = dot(norm,-tanLightDirection);
+    float diffuseFactor = dot(norm,tanLightDirection);
     diffuseFactor = max(diffuseFactor,1.0f);
     vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
 
@@ -138,7 +138,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shad
 
     vec3 SpecColour = lightCol  * specmapcol * specularFactor*specularStrength;
 
-    vec3 result = ambientColour + (1.0-shadow)*(diffuseColour+ SpecColour);
+    vec3 result = ambientColour + (1.0-shadow)*(diffuseColour + SpecColour);
 
     return result;
 }
@@ -257,23 +257,23 @@ float calcShadow(vec4 lightSpacePos)
 
 	float shadow =0;
 	if(currentDepth>closestDepth) shadow=1;
-	//float bias=0.015;
-	//vec2 texelSize=1.0/textureSize(shadowMap,0);
-	//for(int i=-1;i<3;i++)
-	//{
-	//	for(int j=-1;j<3;j++)
-	//	{
-	//		float pcf =texture(shadowMap,projCoords.xy+vec2(i,j)*texelSize).r;
-	//		if(currentDepth-bias>pcf)
-	//		{
-	//			shadow+=1;
-	//		}
-	//	}
-	//}
-	//shadow=shadow/16;
-	//if(projCoords.z>1.0)
-	//{
-	//	shadow =0.0;
-	//}
+	float bias=0.015;
+	vec2 texelSize=1.0/textureSize(shadowMap,0);
+	for(int i=-1;i<3;i++)
+	{
+		for(int j=-1;j<3;j++)
+		{
+			float pcf =texture(shadowMap,projCoords.xy+vec2(i,j)*texelSize).r;
+			if(currentDepth-bias>pcf)
+			{
+				shadow+=1;
+			}
+		}
+	}
+	shadow=shadow/16;
+	if(projCoords.z>1.0)
+	{
+		shadow =0.0;
+	}
 	return shadow;
 }

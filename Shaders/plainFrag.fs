@@ -8,7 +8,7 @@ in vec3 TanSpacepos;
 in vec3 tanLightDirection;
 in vec3 tanViewPos;
 in vec3 WSPos;
-in mat4 lightSpaceMatrix;
+uniform mat4 lightSpaceMatrix;
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow);
 vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos);
@@ -77,7 +77,7 @@ uniform sampler2D shadowMap;
 uniform bool map;
 
 float ambientFactor = 0.5f;
-float shine = 10.f;
+float shine = 100.f;
 float specularStrength = 0.1f;
 float Brightness=0.015f;
 float sharpness =50.f;

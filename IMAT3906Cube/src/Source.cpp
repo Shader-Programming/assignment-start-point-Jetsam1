@@ -258,8 +258,9 @@ int main()
 
 	skybox.createSkyBox();
 	createQuad();
-	//glm::vec3 lightDir = glm::vec3(1.f,-0.7f,0.0f);
-		glm::vec3 lightDir = glm::vec3(0.f,-0.7f,-1.0f);
+	glm::vec3 lightDir = glm::vec3(1.f,-0.7f,0.0f);
+	//	glm::vec3 lightDir = glm::vec3(0.f,-0.7f,-1.0f);
+	//glm::vec3 lightDir = glm::vec3(0.f, -1.0f, -0.01f);
 	glm::vec3 lightColour = glm::vec3(0.992f, 0.3687f, 0.3255f);
 	//glm::vec3 lightColour = glm::vec3(1.f, 1.f, 1.f);
 	loadTextureFiles();
@@ -379,8 +380,7 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
 		
 		renderScene(shader, floorShader, sbShader, camera);
-		//renderCubes(shader);
-		//renderPlane(floorShader);
+
 
 
 		

@@ -10,7 +10,7 @@ layout (location = 4) in vec2 UVcoords;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat4 lightSpaceMatrix;
+//uniform mat4 lightSpaceMatrix;
 uniform vec3 lightDirection;
 uniform vec3 viewPos;
 mat3 TBN;
