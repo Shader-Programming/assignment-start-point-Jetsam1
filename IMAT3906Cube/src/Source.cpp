@@ -265,7 +265,7 @@ int main()
 	//glm::vec3 lightDir = glm::vec3(0.f, -1.0f, -0.01f);
 	//glm::vec3 lightColour = glm::vec3(0.992f, 0.3687f, 0.3255f);
 	//glm::vec3 lightColour = glm::vec3(1.f, 1.f, 1.f);
-	glm::vec3 lightColour = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::vec3 lightColour = glm::vec3(0.4f, 0.4f, 0.4f);
 	loadTextureFiles();
 	glm::vec3 cubeCol = glm::vec3(0.65f, 0.66f, 0.02f);
 	glm::vec3 floorCol = glm::vec3(0.1f, 0.1f, 1.0f);
@@ -384,7 +384,7 @@ int main()
 		
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
-		drawQuad(bloomShader, cAttachment[0], blurredTex);
+		//drawQuad(bloomShader, cAttachment[0], blurredTex);
 		renderScene(shader, floorShader, sbShader, camera);
 
 		
@@ -728,7 +728,7 @@ void setShader(Shader& shader)
 	shader.setFloat("pLight[0].qC", 0.1815987919f);
 
 
-	shader.setVec3( "pLight[1].position", glm::vec3(2, 0, -2));
+	shader.setVec3( "pLight[1].position", glm::vec3(2, 0, -5));
 	shader.setVec3( "pLight[1].ambientCol", glm::vec3(0.47477f, 0.62702f, 0.04221f));
 	shader.setVec3( "pLight[1].diffuseCol", glm::vec3(0.79261f, 0.46497f, 0.71143f));
 	shader.setVec3( "pLight[1].specularCol", glm::vec3(0.06035f, 0.87319f, 0.11919f));
@@ -737,7 +737,7 @@ void setShader(Shader& shader)
 	shader.setFloat("pLight[1].qC", 0.23647f);
 
 
-	shader.setVec3( "pLight[2].position", glm::vec3(0, 2, -1.3));
+	shader.setVec3( "pLight[2].position", glm::vec3(2, 1, -1.3));
 	shader.setVec3( "pLight[2].ambientCol", glm::vec3(0.43886f, 0.15911f, 0.93682f));
 	shader.setVec3( "pLight[2].diffuseCol", glm::vec3(0.97271f, 0.50532f, 0.28898f));
 	shader.setVec3( "pLight[2].specularCol", glm::vec3(0.35509f, 0.74308f, 0.48367f));
@@ -746,7 +746,7 @@ void setShader(Shader& shader)
 	shader.setFloat("pLight[2].qC", 0.10973);
 
 
-	shader.setVec3( "pLight[3].position", glm::vec3(-1, 2, 3));
+	shader.setVec3( "pLight[3].position", glm::vec3(-1, 2, 2));
 	shader.setVec3( "pLight[3].ambientCol", glm::vec3(0.56755f, 0.30263f, 0.67051f));
 	shader.setVec3( "pLight[3].diffuseCol", glm::vec3(0.51405f, 0.29218f, 0.26801f));
 	shader.setVec3( "pLight[3].specularCol", glm::vec3(0.74798f, 0.41856f, 0.51405f));
