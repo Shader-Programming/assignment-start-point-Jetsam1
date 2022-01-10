@@ -2,6 +2,7 @@
 
 void SkyBox::loadCubeMapTextures()
 {
+	//skybox texture paths
 	faces.push_back("..\\resources\\SkyBox\\right.jpg");
 	faces.push_back("..\\resources\\SkyBox\\left.jpg");
 	faces.push_back("..\\resources\\SkyBox\\top.jpg");
@@ -11,7 +12,7 @@ void SkyBox::loadCubeMapTextures()
 	skyBoxTexObj = loadCubeMap(faces);
 }
 
-unsigned int SkyBox::loadCubeMap(std::vector<std::string> faces)
+unsigned int SkyBox::loadCubeMap(std::vector<std::string> faces) //load the faces
 {
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
@@ -37,6 +38,7 @@ unsigned int SkyBox::loadCubeMap(std::vector<std::string> faces)
 			stbi_image_free(data);
 		}
 	}
+	//set params for textures
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

@@ -14,7 +14,7 @@ void main()
 	vec3 bloomCol=texture(bloomBlur,uv).rgb;
 	hdrColour+=bloomCol;
 
-	vec3 rein=hdrColour/(hdrColour+vec3(1.0));
+	vec3 rein=hdrColour/(hdrColour+vec3(1.0));//reinhard
 	fragColour=vec4(rein,1.0);
 
 }

@@ -12,7 +12,7 @@ uniform mat4 lightSpaceMatrix;
 
 
 
-
+//for bloom
 layout(location=0) out vec4 FragColor;
 layout(location=1) out vec4 sceneBrightCol;
 struct pointLight
@@ -29,7 +29,7 @@ struct pointLight
 	float specShine;
 	float specStrength;
 };
-
+//multi point light
 #define NR_POINT_LIGHTS 4
 uniform pointLight pLight[NR_POINT_LIGHTS];
 
@@ -58,15 +58,11 @@ uniform spotLight sLight;
 
 vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow);
 vec3 GetPointLight(pointLight light , vec3 norm , vec3 viewDir , vec3 FragPos  , vec2 texCoords);
-vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos);
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos); //can be changed to be in same form as pointlight for multiple
 vec2 parallaxMapping(vec2 uv,vec3 viewDir);
-vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
+vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);//view manipulation
 float calcShadow(vec4 lightSpacePos);
-
-uniform vec3 lightCol;
-uniform vec3 objectCol;
-
-
+//uniforms
 uniform float PXscale;
 uniform sampler2D crateTex;
 uniform sampler2D crateSpec;
@@ -75,13 +71,13 @@ uniform sampler2D crateDisp;
 
 uniform sampler2D shadowMap;
 
-uniform bool map;
+//floats for lighting
 
 float ambientFactor = 0.5f;
 float shine = 10.f;
 float specularStrength = 0.05f;
 float Brightness=0.015f;
-float sharpness =50.f;
+float sharpness =10.f;
 
 //vec3 colour = vec3(0.2f,0.5f,0.6f);
 void main()
@@ -98,13 +94,13 @@ void main()
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,tanLightDirection,texCoords,shadow);
 	for(int i=0;i<NR_POINT_LIGHTS;i++)
 	{
-	 result+= GetPointLight(pLight[i],norm,viewDir,TanSpacepos,texCoords);
+	 result+= GetPointLight(pLight[i],norm,viewDir,TanSpacepos,texCoords); //adds each point light to the scene
 	}
 	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSPos);
 
 	//Rim Lighting
 	float dp = dot(norm , viewDir);
-	float Rim= (Brightness*pow((1-dp),sharpness));
+	float Rim= (Brightness*pow((1-dp),sharpness));//riddled with issues
 
 
 	result += dirLightRes + spotLightRes ;
@@ -123,7 +119,7 @@ void main()
 
 }
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow)
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow)//takes shadow from main+in tan space
 {
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	float specmapcol = texture(crateSpec,uv).x;
@@ -150,7 +146,7 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shad
    return result;
 }
 
-vec3 GetPointLight(pointLight light,vec3 norm,vec3 viewDir,vec3 FragPos,vec2 texCoords)
+vec3 GetPointLight(pointLight light,vec3 norm,vec3 viewDir,vec3 FragPos,vec2 texCoords)//dir not in tan space but still works
 {
 	vec3 diffmapcol=texture(crateTex,texCoords).xyz;
 	vec3 specmapcol = texture(crateSpec,texCoords).xyz;
@@ -224,13 +220,13 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 	return spotLightRes;
 }
 
-vec2 parallaxMapping(vec2 uv,vec3 viewDir)
+vec2 parallaxMapping(vec2 uv,vec3 viewDir) //basic parallax
 {
 	float height = texture(crateDisp,uv).r;
 	return uv-(viewDir.xy)*(height *PXscale);
 }
 
-vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir)
+vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir)//ambient occlusion mapping
 {
 	float numLayers = 10;
 	float layerDepth = 1.0 / numLayers;
@@ -255,7 +251,7 @@ vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir)
 	return finalCoords;
 }
 
-float calcShadow(vec4 lightSpacePos)
+float calcShadow(vec4 lightSpacePos)//pcf shadow calculations
 {
 	vec3 projCoords = lightSpacePos.xyz/lightSpacePos.w;
 

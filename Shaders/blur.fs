@@ -3,7 +3,7 @@
 out vec4 FragColor;
 
 uniform sampler2D image;
-uniform bool horz;
+uniform bool horz; //changes in source
 
 in vec2 uv;
 
@@ -44,7 +44,7 @@ void main()
 	{
 		for(int i=1;i<r;i++)
 		{
-			colour = colour + texture(image,uv+vec2(textureOffset.x*i,0.0)).rgb*(weights[i]*bias);
+			colour = colour + texture(image,uv+vec2(textureOffset.x*i,0.0)).rgb*(weights[i]*bias); //lower as you go further
 			colour = colour + texture(image,uv-vec2(textureOffset.x*i,0.0)).rgb*(weights[i]*bias);
 		}
 	}

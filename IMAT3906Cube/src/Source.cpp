@@ -31,31 +31,30 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-unsigned int loadTexture(const char* path);
-void loadTextureFiles();
-void setFBOcolour();
-void setFBODepth();
-void setFBOcolourAndDepth();
-void setFBOblur();
-void setShadowMapFBO();
-void createQuad();
-void drawQuad(Shader& shader, unsigned int textureObj);
-void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj);
-void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj,unsigned int depth);
-void setShader(Shader& shader);
-void renderCubes(Shader& shader);
-void renderPlane(Shader& shader);
-void renderScene(Shader& shader, Shader& floorShader, Shader& skyBoxShader, Camera& cam);
-void pointShadowCubeMap();
+unsigned int loadTexture(const char* path); //load textures
+void loadTextureFiles(); //file paths of textures
+void setFBOcolour(); //colour frame buffer object
+void setFBODepth(); // depth frame buffer onject
+void setFBOcolourAndDepth();//colour and depth FBO
+void setFBOblur();//blurring FBO
+void setShadowMapFBO();//Shadow map FBO(could be done in depth)
+void createQuad();//quad
+void drawQuad(Shader& shader, unsigned int textureObj); //draw quad with a shader and an attachment
+void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj);//draw quad with a shader and 2 attachments
+void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj,unsigned int depth);//draw quad with a shader and 2 attachments and depth
+void setShader(Shader& shader);//set shader uniforms
+void renderCubes(Shader& shader); //render cubes
+void renderPlane(Shader& shader); //render planes
+void renderScene(Shader& shader, Shader& floorShader, Shader& skyBoxShader, Camera& cam); //render entire scene
 // camera
 Camera camera(glm::vec3(0,0,9));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
-SkyBox skybox;
+SkyBox skybox; //skybox
 //arrays
-unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,FBO_cAndD,FBO_blur,colourAttachment,cAttachment[2],depthAttachment,blurredTex,shadowMapFBO,shadowMap,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
-const unsigned int shadowWidth = 1024, shadowHeight = 1024;
+unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,FBO_cAndD,FBO_blur,colourAttachment,cAttachment[2],depthAttachment,blurredTex,shadowMapFBO,shadowMap,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;//unsigned ints for VAOs,VBOs EBOs colour attachments etc.
+const unsigned int shadowWidth = 1024, shadowHeight = 1024; //shadow parameters
 unsigned int depthCubeMap;
 
 normalMapper normalCubeMap;
@@ -66,8 +65,8 @@ float lastFrame = 0.0f;
 bool map = false;;
 
 
-// cube data
-float cubeVertices[] = {
+// initial cube data
+float cubeVertices[] = { 
 	//back
 	
 		   -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,   0.0f, 0.0f,// 0 
@@ -104,7 +103,7 @@ float cubeVertices[] = {
 		   0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
 		   0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
 		  -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
-};
+}; 
 
 unsigned int cubeIndices[] = {
 	1,2,3,
@@ -132,7 +131,7 @@ unsigned int cubeIndices[] = {
 
 float floorSize = 5.0f;
 float floorLevel = -2.5f;
-
+//initial floor data
 float floorVertices[] = {
 		 -floorSize, floorLevel,  -floorSize, 0.0, 1.0, 0.0,   0.0f, 0.0f,
 		 floorSize, floorLevel,   -floorSize, 0.0, 1.0, 0.0, 1.0f, 0.0f,
@@ -161,9 +160,10 @@ int main()
 		glfwTerminate();
 		return -1;
 	}
+	//returns cube data with tangents and binormals
 	normalCubeMap.calctanandbinorm(cubeVertices, (192), cubeIndices, (36));
 	std::vector<float>updatedCubeData = normalCubeMap.getVertexData();
-
+	//returns floor data with tangents and binormals
 	normalFloorMap.calctanandbinorm(floorVertices, (32), floorIndices, 6);
 	std::vector<float>updatedFloorData = normalFloorMap.getVertexData();
 
@@ -181,7 +181,7 @@ int main()
 
 
 
-	// simple vertex and fragment shader 
+	// list of shaders used
 	Shader shader("..\\shaders\\plainVert.vs", "..\\shaders\\plainFrag.fs");
 	Shader floorShader("..\\shaders\\floorVert.vs", "..\\shaders\\floorFrag.fs");
 	Shader postProcess("..\\shaders\\PP.vs","..\\shaders\\PP.fs");
@@ -256,18 +256,18 @@ int main()
 	//UV attribute
 	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 14* sizeof(float), (void*)(12 * sizeof(float)));
 	glEnableVertexAttribArray(4);
-
+	//make sky box
 	skybox.createSkyBox();
+	//creates quad
 	createQuad();
+	//uniforms 
 	glm::vec3 lightDir = glm::vec3(1.f,-0.7f,0.0f);
 	//	glm::vec3 lightDir = glm::vec3(0.f,-0.7f,-1.0f);
 	//glm::vec3 lightDir = glm::vec3(0.f, -1.0f, -0.01f);
 	//glm::vec3 lightColour = glm::vec3(0.992f, 0.3687f, 0.3255f);
 	//glm::vec3 lightColour = glm::vec3(1.f, 1.f, 1.f);
 	glm::vec3 lightColour = glm::vec3(0.4f, 0.4f, 0.4f);
-	loadTextureFiles();
-	glm::vec3 cubeCol = glm::vec3(0.65f, 0.66f, 0.02f);
-	glm::vec3 floorCol = glm::vec3(0.1f, 0.1f, 1.0f);
+
 	shader.use();
 	shader.setVec3("lightCol", lightColour);
 	shader.setVec3("lightDirection", lightDir);
@@ -283,20 +283,17 @@ int main()
 	bloomShader.use();
 	bloomShader.setInt("image", 0);
 	bloomShader.setInt("bloomBlur", 1);
+	//load textures
+	loadTextureFiles();
 
 
-
-	
-
-
-	
-
+	//set FBOs
 	//setFBOcolour();
 	setFBODepth();
 	setFBOblur();
 	setFBOcolourAndDepth();
 	setShadowMapFBO();
-
+	//light space matrix and upload
 	glm::vec3 lightPos = lightDir * glm::vec3(-1); //start +(end-start)*scalar
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -10.f, 20.f);
 	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
@@ -322,7 +319,7 @@ int main()
 		//renderScene(shader, floorShader, sbShader, camera);
 		
 		
-		
+		//Blurring shadows
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO_cAndD);
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -517,9 +514,6 @@ unsigned int loadTexture(const char* path)
 	return textureID;
 }
 
-
-
-
 void loadTextureFiles()
 {
 	crateTex = loadTexture("../Resources/Textures/Wood_Crate_001_SD/Wood_Crate_001_basecolor.jpg");
@@ -547,7 +541,7 @@ void setFBOcolour()
 	
 
 
-
+		//read only
 	unsigned int rbo;
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
@@ -571,6 +565,7 @@ void setFBODepth()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthAttachment, 0);
+	//needs to know the state of the colour attachment
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -600,7 +595,7 @@ void setFBOcolourAndDepth()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthAttachment, 0);
-	
+	//multi target rendering
 	unsigned int attachment[2] = { GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1 };
 	glDrawBuffers(2, attachment);
 
@@ -714,7 +709,7 @@ void setShader(Shader& shader)
 	shader.setFloat("sLight.specShine", 100.f);
 	shader.setFloat("sLight.specStrength", 0.4);
 	shader.setFloat("PXscale", 0.0175);
-
+	//multiple spotlights
 	shader.setVec3("pLight[0].position", glm::vec3(1, 0, 1));
 	shader.setVec3("pLight[0].ambientCol", glm::vec3(0.2349520849, 0.8563239901, 0.2733646522));
 	shader.setVec3("pLight[0].diffuseCol", glm::vec3(0.3123285777, 0.6348458802, 0.2858810024));
@@ -876,17 +871,3 @@ void renderScene(Shader& shader, Shader& floorShader, Shader& skyBoxShader, Came
 	renderCubes(shader);
 	renderPlane(floorShader);
 }
-
-void pointShadowCubeMap()
-{
-	for (unsigned int i = 0; i < 6; i++)
-	{
-		GLenum face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, face, depthCubeMap,0);
-		
-	}
-
-	
-}
-
-

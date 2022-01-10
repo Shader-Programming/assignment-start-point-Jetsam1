@@ -1,6 +1,7 @@
 #version 410 core
 
 //out vec4 FragColor;
+//same comments as plainFrag.fs
 
 in vec3 normal;
 in vec2 uv;

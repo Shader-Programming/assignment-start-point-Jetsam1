@@ -1,5 +1,6 @@
 
 #version 330 core
+//ins from vertex attribute array
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormals;
 layout (location = 2) in vec3 tangent;
@@ -10,7 +11,6 @@ layout (location = 4) in vec2 UVcoords;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-//uniform mat4 lightSpaceMatrix;
 uniform vec3 lightDirection;
 uniform vec3 viewPos;
 mat3 TBN;
@@ -33,7 +33,7 @@ void main()
     TBN =mat3(T ,B ,normal);
    TBN = transpose(TBN);
   //  TanSpacepos=WSPos;
-    TanSpacepos=TBN*WSPos;
+    TanSpacepos=TBN*WSPos;//matrix multiplications done here so that they are done per vertex rather than fragment
     tanLightDirection=TBN*lightDirection;
     tanViewPos=TBN*viewPos;
 
