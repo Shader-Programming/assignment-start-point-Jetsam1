@@ -63,6 +63,7 @@ vec2 parallaxMapping(vec2 uv,vec3 viewDir);
 vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);//view manipulation
 float calcShadow(vec4 lightSpacePos);
 //uniforms
+uniform vec3 lightCol;
 uniform float PXscale;
 uniform sampler2D crateTex;
 uniform sampler2D crateSpec;

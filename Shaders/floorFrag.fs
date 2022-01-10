@@ -64,7 +64,7 @@ vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
 float calcShadow(vec4 lightSpacePos);
 
 uniform vec3 lightCol;
-uniform vec3 objectCol;
+
 uniform sampler2D floorTex;
 uniform sampler2D floorSpec;
 uniform sampler2D floorNorm;
@@ -192,7 +192,7 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)
     float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
     vec3 sLightDir = normalize( sLight.pos - FragPos );
 
-    vec3 ambCol = sLight.ambCol * objectCol * sLight.ambFac;
+    vec3 ambCol = sLight.ambCol * diffmapcol * sLight.ambFac;
     ambCol = ambCol * atten;
 
     float diffuseFactor = dot( norm , sLightDir );
