@@ -1,17 +1,20 @@
 #version 410 core
 
-out vec4 FragColor;
+//out vec4 FragColor;
 
 in vec3 normal;
-in vec3 WSpos;
 in vec2 uv;
-in mat3 invTBN;
+in vec3 TanSpacepos;
+in vec3 tanLightDirection;
+in vec3 tanViewPos;
+in vec3 WSPos;
+uniform mat4 lightSpaceMatrix;
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir);
-vec3 GetPointLight(vec3 norm,vec3 viewDir);
-vec3 GetSpotLight(vec3 norm,vec3 viewDir);
 
 
+
+layout(location=0) out vec4 FragColor;
+layout(location=1) out vec4 sceneBrightCol;
 struct pointLight
 {
 	vec3 position;
@@ -27,7 +30,8 @@ struct pointLight
 	float specStrength;
 };
 
-uniform pointLight pLight;
+#define NR_POINT_LIGHTS 4
+uniform pointLight pLight[NR_POINT_LIGHTS];
 
 
 struct spotLight
@@ -52,126 +56,146 @@ struct spotLight
 uniform spotLight sLight;
 
 
-
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow);
+vec3 GetPointLight(pointLight light , vec3 norm , vec3 viewDir , vec3 FragPos  , vec2 texCoords);
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos);
+vec2 parallaxMapping(vec2 uv,vec3 viewDir);
+vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
+float calcShadow(vec4 lightSpacePos);
 
 uniform vec3 lightCol;
-in vec3 TanlightDirection;
 uniform vec3 objectCol;
-in vec3 TanviewPos;
+
+
+uniform float PXscale;
 uniform sampler2D crateTex;
 uniform sampler2D crateSpec;
 uniform sampler2D crateNorm;
+uniform sampler2D crateDisp;
+
+uniform sampler2D shadowMap;
 
 uniform bool map;
 
 float ambientFactor = 0.5f;
-float shine = 1500.f;
-float specularStrength = 0.2f;
-float Brightness=0.1f;
-float sharpness =500.f;
+float shine = 10.f;
+float specularStrength = 0.05f;
+float Brightness=0.015f;
+float sharpness =50.f;
 
 //vec3 colour = vec3(0.2f,0.5f,0.6f);
 void main()
 {   
-
-   vec3 norm =vec3(0.0);
-   if(map==true)
-   {
-   norm = texture(crateNorm,uv).xyz;
-   norm=norm*2 -1;
-   norm=normalize(norm);
-   }
-   else
-   {
-       norm = normalize(normal);
-   }
-	vec3 viewDir = normalize(TanviewPos-WSpos);
-//	viewDir=normalize(viewDir*invTBN);
+    vec4 lightSpacePos = lightSpaceMatrix *vec4(WSPos,1.0);
+	float shadow=calcShadow(lightSpacePos);
+    vec3 norm =vec3(0.0);
+    norm = texture(crateNorm,uv).xyz;
+   
+	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
-	vec3 dirLightRes = GetDirectionalLight(norm,viewDir);
-	vec3 PointLightRes = GetPointLight(norm,viewDir);
-	vec3 spotLightRes = GetSpotLight(norm,viewDir);
+	//parallaxMapping(uv,viewDir);
+	vec2 texCoords=SteepParallaxMapping(uv,viewDir);
+	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,tanLightDirection,texCoords,shadow);
+	for(int i=0;i<NR_POINT_LIGHTS;i++)
+	{
+	 result+= GetPointLight(pLight[i],norm,viewDir,TanSpacepos,texCoords);
+	}
+	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSPos);
 
 	//Rim Lighting
 	float dp = dot(norm , viewDir);
 	float Rim= (Brightness*pow((1-dp),sharpness));
 
 
-	result = dirLightRes + PointLightRes + spotLightRes +Rim;
+	result += dirLightRes + spotLightRes ;
 
    FragColor = vec4(result,1.f);
+
+   float sceneBright=max(max(result.x,result.y),result.z);
+   if(sceneBright>1)
+   {
+		  sceneBrightCol=FragColor;
+   }
+   else
+   {
+		  sceneBrightCol=vec4(vec3(0.0),1.0);
+   }
+
 }
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir)
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow)
 {
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	float specmapcol = texture(crateSpec,uv).x;
     vec3 ambientColour = lightCol * diffmapcol * ambientFactor;
-	vec3 lightDir=normalize(invTBN*TanlightDirection);
-	//vec3 lightDir=normalize(TanlightDirection);
+
     float diffuseFactor = dot(norm,-lightDir);
-    diffuseFactor = max(diffuseFactor,0.0f);
+    diffuseFactor = max(diffuseFactor,1.0f);
     vec3 diffuseColour = lightCol*diffmapcol*diffuseFactor;
 
 
-   
+   // vec3 reflectDir = reflect(tanLightDirection,norm);
    vec3 halfDir = normalize(lightDir+viewDir);
- //  float specularFactor = dot(viewDir,reflectDir);
+   //float specularFactor = dot(viewDir,reflectDir);
    float specularFactor=dot(halfDir,norm);
   
   specularFactor = max(specularFactor,0.0);
    specularFactor = pow(specularFactor,shine);
 
 
-   vec3 SpecColour = lightCol  * specmapcol * specularFactor;
+   vec3 SpecColour = lightCol  * specmapcol * specularFactor*specularStrength;
 
-   vec3 result = ambientColour + diffuseColour+ SpecColour;
+   vec3 result = ambientColour + (1.0-shadow)*(diffuseColour+ SpecColour);
 
    return result;
 }
 
-vec3 GetPointLight(vec3 norm,vec3 viewDir)
+vec3 GetPointLight(pointLight light,vec3 norm,vec3 viewDir,vec3 FragPos,vec2 texCoords)
 {
-	vec3 diffmapcol=texture(crateTex,uv).xyz;
-	float specmapcol = texture(crateSpec,uv).x;
+	vec3 diffmapcol=texture(crateTex,texCoords).xyz;
+	vec3 specmapcol = texture(crateSpec,texCoords).xyz;
 
-   float dist=length(pLight.position-WSpos);
-   float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
-   vec3 pLightDir = normalize( pLight.position - WSpos );
-   pLightDir=normalize(pLightDir*invTBN);
+    float dist=length(light.position-FragPos);
+    float atten = 1.0/( light.kC + (light.lC * dist) + (light.qC * (dist * dist)));
 
-   vec3 ambCol = pLight.ambientCol * diffmapcol* pLight.ambFac;
-   ambCol = ambCol * atten;
+    vec3 pLightDir = normalize(light.position - FragPos );
+
 
     float diffuseFactor = dot( norm , pLightDir );
     diffuseFactor = max( diffuseFactor , 0.0f );
-    vec3 diffuseColour = pLight.diffuseCol * diffmapcol * diffuseFactor;
-	diffuseColour = diffuseColour * atten;
-
-	
-	vec3 halfDir = normalize( pLightDir + viewDir );
-	float specularFactor = dot( halfDir , norm );
-	specularFactor = max( specularFactor , 0.0 );
-	specularFactor = pow( specularFactor , pLight.specShine );
-	vec3 SpecColour = pLight.specCol  * specmapcol * specularFactor;
-	SpecColour = SpecColour * atten;
-
-	vec3 pointlightRes= ambCol+diffuseColour+SpecColour;
-
-	return pointlightRes;
+    // vec3 diffuseColour = pLight.diffuseCol * diffmapcol * diffuseFactor;
+    //diffuseColour = diffuseColour * atten;
+    
+    
+    vec3 halfDir = normalize( pLightDir + viewDir );
+    float specularFactor = dot( halfDir , norm );
+    specularFactor = max( specularFactor , 0.0 );
+    specularFactor = pow( specularFactor , shine );
+    //vec3 SpecColour = pLight.specCol  * specmapcol * specularFactor;
+    //SpecColour = SpecColour * atten;
+    
+    vec3 ambient = light.ambientCol *diffmapcol;
+    vec3 diffuse = light.diffuseCol*diffuseFactor*diffmapcol;
+    vec3 specular = light.specCol*specularFactor*specmapcol*specularStrength;
+    
+    ambient*=atten;
+    diffuse*=atten;
+    specular*=atten;
+    vec3 pointlightRes= ambient+diffuse+specular;
+    return pointlightRes;
 }
 
-vec3 GetSpotLight(vec3 norm,vec3 viewDir)
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)
 {
 	vec3 diffmapcol=texture(crateTex,uv).xyz;
 	float specmapcol = texture(crateSpec,uv).x;
 
-   float dist=length(sLight.pos-WSpos);
-   float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
-   vec3 sLightDir = normalize( sLight.pos - WSpos );
+    float dist=length(sLight.pos-FragPos);
+    float atten = 1.0/( sLight.kC + (sLight.lC * dist) + (sLight.qC * (dist * dist)));
+    vec3 sLightDir = normalize( sLight.pos - FragPos );
 
-   vec3 ambCol = sLight.ambCol * objectCol * sLight.ambFac;
-   ambCol = ambCol * atten;
+    vec3 ambCol = sLight.ambCol * diffmapcol * sLight.ambFac;
+    ambCol = ambCol * atten;
 
     float diffuseFactor = dot( norm , sLightDir );
     diffuseFactor = max( diffuseFactor , 0.0f );
@@ -198,4 +222,67 @@ vec3 GetSpotLight(vec3 norm,vec3 viewDir)
 	vec3 spotLightRes= ambCol+diffuseColour+SpecColour;
 
 	return spotLightRes;
+}
+
+vec2 parallaxMapping(vec2 uv,vec3 viewDir)
+{
+	float height = texture(crateDisp,uv).r;
+	return uv-(viewDir.xy)*(height *PXscale);
+}
+
+vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir)
+{
+	float numLayers = 10;
+	float layerDepth = 1.0 / numLayers;
+	float currentLayerDepth = 0.0;
+	vec2 P = viewDir.xy * PXscale;
+	vec2 deltaTexCoords = P /numLayers;
+	vec2 currentTexCoords = uv;
+	float currentDepthMapValue = texture(crateDisp,currentTexCoords).r;
+	while(currentLayerDepth<currentDepthMapValue)
+	{
+		currentTexCoords -=deltaTexCoords;
+		currentDepthMapValue = texture(crateDisp,currentTexCoords).r;
+		currentLayerDepth+= layerDepth;
+	}
+	vec2 prevTexCoords= currentTexCoords +deltaTexCoords;
+
+	float postDepth=currentDepthMapValue -currentLayerDepth;
+	float preDepth=texture(crateDisp,prevTexCoords).r -currentLayerDepth +layerDepth;
+
+	float weight=postDepth /(postDepth - preDepth);
+	vec2 finalCoords= prevTexCoords *weight +currentTexCoords*(1.0 - weight);
+	return finalCoords;
+}
+
+float calcShadow(vec4 lightSpacePos)
+{
+	vec3 projCoords = lightSpacePos.xyz/lightSpacePos.w;
+
+	projCoords=projCoords * 0.5 + 0.5;
+	float closestDepth = texture(shadowMap,projCoords.xy).r;
+
+	float currentDepth = projCoords.z;
+
+	float shadow =0;
+	//if(currentDepth>closestDepth) shadow=1;
+	float bias=0.015;
+	vec2 texelSize=1.0/textureSize(shadowMap,0);
+	for(int i=-1;i<3;i++)
+	{
+		for(int j=-1;j<3;j++)
+		{
+			float pcf =texture(shadowMap,projCoords.xy+vec2(i,j)*texelSize).r;
+			if(currentDepth-bias>pcf)
+			{
+				shadow+=1;
+			}
+		}
+	}
+	shadow=shadow/16;
+	if(projCoords.z>1.0)
+	{
+		shadow =0.0;
+	}
+	return shadow;
 }
