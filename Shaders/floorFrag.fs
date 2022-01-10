@@ -10,12 +10,7 @@ in vec3 tanViewPos;
 in vec3 WSPos;
 uniform mat4 lightSpaceMatrix;
 
-vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow);
-vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos);
-vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos);
-vec2 parallaxMapping(vec2 uv,vec3 viewDir);
-vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
-float calcShadow(vec4 lightSpacePos);
+
 
 
 layout(location=0) out vec4 FragColor;
@@ -24,19 +19,18 @@ layout(location=1) out vec4 sceneBrightCol;
 struct pointLight
 {
 	vec3 position;
+
 	vec3 ambientCol;
 	vec3 diffuseCol;
 	vec3 specCol;
+
 	float kC;
 	float lC;
 	float qC;
 
-	float ambFac;
-	float specShine;
-	float specStrength;
 };
-
-uniform pointLight pLight;
+#define NR_POINT_LIGHTS 4
+uniform pointLight pLight[NR_POINT_LIGHTS];
 
 
 struct spotLight
@@ -61,7 +55,12 @@ struct spotLight
 uniform spotLight sLight;
 
 
-
+vec3 GetPointLight(pointLight light , vec3 norm , vec3 viewDir , vec3 FragPos  , vec2 texCoords);
+vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shadow);
+vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos);
+vec2 parallaxMapping(vec2 uv,vec3 viewDir);
+vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir);
+float calcShadow(vec4 lightSpacePos);
 
 uniform vec3 lightCol;
 uniform vec3 objectCol;
@@ -75,8 +74,8 @@ uniform sampler2D shadowMap;
 
 uniform bool map;
 float ambientFactor = 0.5f;
-float shine = 100.f;
-float specularStrength = 0.2f;
+float shine = 10.f;
+float specularStrength = 0.05f;
 float Brightness=0.015f;
 float sharpness =50.f;
 
@@ -95,7 +94,10 @@ void main()
 	//parallaxMapping(uv,viewDir);
 	vec2 texCoords = SteepParallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,tanLightDirection,texCoords,shadow);
-	vec3 PointLightRes = GetPointLight(norm,viewDir,WSPos);
+	for(int i=0;i<NR_POINT_LIGHTS;i++)
+	{
+	 result+= GetPointLight(pLight[i],norm,viewDir,TanSpacepos,texCoords);
+	}
 	vec3 spotLightRes = GetSpotLight(norm,viewDir,WSPos);
 
 	//Rim Lighting
@@ -103,7 +105,7 @@ void main()
 	float Rim= (Brightness*pow((1-dp),sharpness));
 
 
-	result = dirLightRes + PointLightRes + spotLightRes ;
+	result += dirLightRes + spotLightRes ;
 
     FragColor = vec4(result,1.f);
    
@@ -145,34 +147,39 @@ vec3 GetDirectionalLight(vec3 norm,vec3 viewDir,vec3 lightDir,vec2 uv,float shad
 
 
 
-vec3 GetPointLight(vec3 norm,vec3 viewDir,vec3 FragPos)
+vec3 GetPointLight(pointLight light,vec3 norm,vec3 viewDir,vec3 FragPos,vec2 texCoords)
 {
-	vec3 diffmapcol=texture(floorTex,uv).xyz;
-	float specmapcol = texture(floorSpec,uv).x;
+	vec3 diffmapcol=texture(floorTex,texCoords).xyz;
+	vec3 specmapcol = texture(floorSpec,texCoords).xyz;
 
-    float dist=length(pLight.position-FragPos);
-    float atten = 1.0/( pLight.kC + (pLight.lC * dist) + (pLight.qC * (dist * dist)));
-    vec3 pLightDir = normalize( pLight.position - FragPos );
+    float dist=length(light.position-FragPos);
+    float atten = 1.0/( light.kC + (light.lC * dist) + (light.qC * (dist * dist)));
 
-    vec3 ambCol = pLight.ambientCol * diffmapcol* pLight.ambFac;
-    ambCol = ambCol * atten;
+    vec3 pLightDir = normalize(light.position - FragPos );
+
 
     float diffuseFactor = dot( norm , pLightDir );
     diffuseFactor = max( diffuseFactor , 0.0f );
-    vec3 diffuseColour = pLight.diffuseCol * diffmapcol * diffuseFactor;
-	diffuseColour = diffuseColour * atten;
-
-	
-	vec3 halfDir = normalize( pLightDir + viewDir );
-	float specularFactor = dot( halfDir , norm );
-	specularFactor = max( specularFactor , 0.0 );
-	specularFactor = pow( specularFactor , pLight.specShine );
-	vec3 SpecColour = pLight.specCol  * specmapcol * specularFactor;
-	SpecColour = SpecColour * atten;
-
-	vec3 pointlightRes= ambCol+diffuseColour+SpecColour;
-
-	return pointlightRes;
+    // vec3 diffuseColour = pLight.diffuseCol * diffmapcol * diffuseFactor;
+    //diffuseColour = diffuseColour * atten;
+    
+    
+    vec3 halfDir = normalize( pLightDir + viewDir );
+    float specularFactor = dot( halfDir , norm );
+    specularFactor = max( specularFactor , 0.0 );
+    specularFactor = pow( specularFactor , shine );
+    //vec3 SpecColour = pLight.specCol  * specmapcol * specularFactor;
+    //SpecColour = SpecColour * atten;
+    
+    vec3 ambient = light.ambientCol *diffmapcol;
+    vec3 diffuse = light.diffuseCol*diffuseFactor*diffmapcol;
+    vec3 specular = light.specCol*specularFactor*specmapcol;
+    
+    ambient*=atten;
+    diffuse*=atten;
+    specular*=atten;
+    vec3 pointlightRes= ambient+diffuse+specular;
+    return pointlightRes;
 }
 
 vec3 GetSpotLight(vec3 norm,vec3 viewDir,vec3 FragPos)

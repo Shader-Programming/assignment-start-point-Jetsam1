@@ -46,6 +46,7 @@ void setShader(Shader& shader);
 void renderCubes(Shader& shader);
 void renderPlane(Shader& shader);
 void renderScene(Shader& shader, Shader& floorShader, Shader& skyBoxShader, Camera& cam);
+void pointShadowCubeMap();
 // camera
 Camera camera(glm::vec3(0,0,9));
 float lastX = SCR_WIDTH / 2.0f;
@@ -55,6 +56,7 @@ SkyBox skybox;
 //arrays
 unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,FBO_cAndD,FBO_blur,colourAttachment,cAttachment[2],depthAttachment,blurredTex,shadowMapFBO,shadowMap,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
 const unsigned int shadowWidth = 1024, shadowHeight = 1024;
+unsigned int depthCubeMap;
 
 normalMapper normalCubeMap;
 normalMapper normalFloorMap;
@@ -261,8 +263,9 @@ int main()
 	glm::vec3 lightDir = glm::vec3(1.f,-0.7f,0.0f);
 	//	glm::vec3 lightDir = glm::vec3(0.f,-0.7f,-1.0f);
 	//glm::vec3 lightDir = glm::vec3(0.f, -1.0f, -0.01f);
-	glm::vec3 lightColour = glm::vec3(0.992f, 0.3687f, 0.3255f);
+	//glm::vec3 lightColour = glm::vec3(0.992f, 0.3687f, 0.3255f);
 	//glm::vec3 lightColour = glm::vec3(1.f, 1.f, 1.f);
+	glm::vec3 lightColour = glm::vec3(0.5f, 0.5f, 0.5f);
 	loadTextureFiles();
 	glm::vec3 cubeCol = glm::vec3(0.65f, 0.66f, 0.02f);
 	glm::vec3 floorCol = glm::vec3(0.1f, 0.1f, 1.0f);
@@ -309,6 +312,9 @@ int main()
 	shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 	floorShader.use();
 	floorShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+	
+
+
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -316,45 +322,45 @@ int main()
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		processInput(window);
-
+		//SCENE WITH BLURRING
 		//renderScene(shader, floorShader, sbShader, camera);
-		//
-		//
-		//
-		//glBindFramebuffer(GL_FRAMEBUFFER, FBO_cAndD);
-		//glEnable(GL_DEPTH_TEST);
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//
-		//
-		//
-		//renderScene(shader, floorShader, sbShader, camera);
-		//
-		//glDisable(GL_DEPTH_TEST);
-		//glBindFramebuffer(GL_FRAMEBUFFER, FBO_depth);
-		//drawQuad(depthPP, depthAttachment);
-		//
-		//renderScene(shader, floorShader, sbShader, camera);
-		//
-		////blurring
-		//glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur);
-		//
-		//blurShader.use();
-		//blurShader.setBool("horz", true);
-		//drawQuad(blurShader, cAttachment[1]);
-		//blurShader.setBool("horz", false);
-		//drawQuad(blurShader, blurredTex);
-		//
-		//
+		
+		
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_cAndD);
+		glEnable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		
+		
+		renderScene(shader, floorShader, sbShader, camera);
+		
+		glDisable(GL_DEPTH_TEST);
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_depth);
+		drawQuad(depthPP, depthAttachment);
+		
+		renderScene(shader, floorShader, sbShader, camera);
+		
+		//blurring
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur);
+		
+		blurShader.use();
+		blurShader.setBool("horz", true);
+		drawQuad(blurShader, cAttachment[1]);
+		blurShader.setBool("horz", false);
+		drawQuad(blurShader, blurredTex);
+		
+		
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		//
-		//drawQuad(bloomShader , cAttachment[0],blurredTex);
+		//drawQuad(bloomShader , cAttachment[1],blurredTex);
 		////drawQuad(DoFshader, cAttachment[0], blurredTex, depthAttachment);
 		//if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
 		//	drawQuad(postProcess, blurredTex);
 		
 			
 
-		
+		//SCENE WITH SHADOWS
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
 		glViewport(0, 0, shadowWidth, shadowHeight);
 		glEnable(GL_DEPTH_TEST);
@@ -378,8 +384,10 @@ int main()
 		
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
-		
+		drawQuad(bloomShader, cAttachment[0], blurredTex);
 		renderScene(shader, floorShader, sbShader, camera);
+
+		
 
 
 
@@ -394,8 +402,14 @@ int main()
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		//glDisable(GL_DEPTH_TEST);
 		//drawQuad(depthPP, shadowMap);
-		
-		
+
+		//glViewport(0, 0, shadowWidth, shadowHeight);
+		//glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+		//glClear(GL_DEPTH_BUFFER_BIT);
+		//setShader(shader);
+		//setShader(floorShader);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP,depthcu);
+		//renderScene(shader,floorShader,sbShader,camera);
 		
 		
 		
@@ -705,16 +719,43 @@ void setShader(Shader& shader)
 	shader.setFloat("sLight.specStrength", 0.4);
 	shader.setFloat("PXscale", 0.0175);
 
-	shader.setVec3("pLight.position", glm::vec3(1, 0, 1));
-	shader.setVec3("pLight.ambientCol", glm::vec3(0.2349520849, 0.8563239901, 0.2733646522));
-	shader.setVec3("pLight.diffuseCol", glm::vec3(0.3123285777, 0.6348458802, 0.2858810024));
-	shader.setVec3("pLight.specularCol", glm::vec3(0.4622860781, 0.2729412403, 0.0480364033));
-	shader.setFloat("pLight.kC", 1.f);
-	shader.setFloat("pLight.lC", 0.5116701455f);
-	shader.setFloat("pLight.qC", 0.1815987919f);
-	shader.setFloat("pLight.ambFac", 0.05f);
-	shader.setFloat("pLight.specShine", 50.f);
-	shader.setFloat("pLight.specStrength", 0.7);
+	shader.setVec3("pLight[0].position", glm::vec3(1, 0, 1));
+	shader.setVec3("pLight[0].ambientCol", glm::vec3(0.2349520849, 0.8563239901, 0.2733646522));
+	shader.setVec3("pLight[0].diffuseCol", glm::vec3(0.3123285777, 0.6348458802, 0.2858810024));
+	shader.setVec3("pLight[0].specularCol", glm::vec3(0.4622860781, 0.2729412403, 0.0480364033));
+	shader.setFloat("pLight[0].kC", 1.f);
+	shader.setFloat("pLight[0].lC", 0.5116701455f);
+	shader.setFloat("pLight[0].qC", 0.1815987919f);
+
+
+	shader.setVec3( "pLight[1].position", glm::vec3(2, 0, -2));
+	shader.setVec3( "pLight[1].ambientCol", glm::vec3(0.47477f, 0.62702f, 0.04221f));
+	shader.setVec3( "pLight[1].diffuseCol", glm::vec3(0.79261f, 0.46497f, 0.71143f));
+	shader.setVec3( "pLight[1].specularCol", glm::vec3(0.06035f, 0.87319f, 0.11919f));
+	shader.setFloat("pLight[1].kC", 1.f);
+	shader.setFloat("pLight[1].lC", 0.74308f);
+	shader.setFloat("pLight[1].qC", 0.23647f);
+
+
+	shader.setVec3( "pLight[2].position", glm::vec3(0, 2, -1.3));
+	shader.setVec3( "pLight[2].ambientCol", glm::vec3(0.43886f, 0.15911f, 0.93682f));
+	shader.setVec3( "pLight[2].diffuseCol", glm::vec3(0.97271f, 0.50532f, 0.28898f));
+	shader.setVec3( "pLight[2].specularCol", glm::vec3(0.35509f, 0.74308f, 0.48367f));
+	shader.setFloat("pLight[2].kC", 1.f);
+	shader.setFloat("pLight[2].lC", 0.28180f);
+	shader.setFloat("pLight[2].qC", 0.10973);
+
+
+	shader.setVec3( "pLight[3].position", glm::vec3(-1, 2, 3));
+	shader.setVec3( "pLight[3].ambientCol", glm::vec3(0.56755f, 0.30263f, 0.67051f));
+	shader.setVec3( "pLight[3].diffuseCol", glm::vec3(0.51405f, 0.29218f, 0.26801f));
+	shader.setVec3( "pLight[3].specularCol", glm::vec3(0.74798f, 0.41856f, 0.51405f));
+	shader.setFloat("pLight[3].kC", 1.f);
+	shader.setFloat("pLight[3].lC", 0.48788f);
+	shader.setFloat("pLight[3].qC", 0.16726f);
+
+
+
 }
 void renderCubes(Shader& shader)
 {
@@ -805,6 +846,13 @@ void renderPlane(Shader& shader)
 
 	glBindVertexArray(floorVAO);  // bind and draw floor
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(2.5f, 0.f, 0.f));
+	model = glm::rotate(model,float(glm::radians(90.f)), glm::vec3(1, 0, 0));
+	model = glm::rotate(model, float(glm::radians(90.f)), glm::vec3(0, 0, 1));
+	shader.setMat4("model", model);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 void renderScene(Shader& shader, Shader& floorShader, Shader& skyBoxShader, Camera& cam)
 {
@@ -831,6 +879,18 @@ void renderScene(Shader& shader, Shader& floorShader, Shader& skyBoxShader, Came
 	skybox.renderSkyBox(skyBoxShader);
 	renderCubes(shader);
 	renderPlane(floorShader);
+}
+
+void pointShadowCubeMap()
+{
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		GLenum face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, face, depthCubeMap,0);
+		
+	}
+
+	
 }
 
 
