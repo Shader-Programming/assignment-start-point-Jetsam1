@@ -188,7 +188,6 @@ int main()
 	Shader depthPP("..\\shaders\\PP.vs", "..\\shaders\\dPP.fs");
 	Shader blurShader("..\\shaders\\PP.vs", "..\\shaders\\blur.fs");
 	Shader bloomShader("..\\shaders\\PP.vs", "..\\shaders\\bloom.fs");
-	Shader DoFshader("..\\shaders\\PP.vs", "..\\shaders\\DoF.fs");
 	Shader shadowMapshader("..\\shaders\\SM.vs", "..\\shaders\\SM.fs");
 	Shader sbShader("..\\shaders\\skyBoxShader.vs", "..\\shaders\\skyBoxShader.fs");
 
@@ -284,10 +283,7 @@ int main()
 	bloomShader.use();
 	bloomShader.setInt("image", 0);
 	bloomShader.setInt("bloomBlur", 1);
-	DoFshader.use();
-	DoFshader.setInt("image", 0);
-	DoFshader.setInt("blur", 1);
-	DoFshader.setInt("depth", 2);
+
 
 
 	
