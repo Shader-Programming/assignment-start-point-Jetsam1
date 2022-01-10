@@ -91,7 +91,7 @@ void main()
 	
 	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
-	//parallaxMapping(uv,viewDir);
+	//vec2 texCoords = parallaxMapping(uv,viewDir);
 	vec2 texCoords = SteepParallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,tanLightDirection,texCoords,shadow);
 	for(int i=0;i<NR_POINT_LIGHTS;i++)
@@ -173,7 +173,7 @@ vec3 GetPointLight(pointLight light,vec3 norm,vec3 viewDir,vec3 FragPos,vec2 tex
     
     vec3 ambient = light.ambientCol *diffmapcol;
     vec3 diffuse = light.diffuseCol*diffuseFactor*diffmapcol;
-    vec3 specular = light.specCol*specularFactor*specmapcol;
+    vec3 specular = light.specCol*specularFactor*specmapcol*specularStrength;
     
     ambient*=atten;
     diffuse*=atten;

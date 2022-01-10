@@ -93,7 +93,7 @@ void main()
    
 	vec3 viewDir = (normalize(tanViewPos-TanSpacepos));
 	vec3 result=vec3(0.0);
-	//parallaxMapping(uv,viewDir);
+	//vec2 texCoords=parallaxMapping(uv,viewDir);
 	vec2 texCoords=SteepParallaxMapping(uv,viewDir);
 	vec3 dirLightRes = GetDirectionalLight(norm,viewDir,tanLightDirection,texCoords,shadow);
 	for(int i=0;i<NR_POINT_LIGHTS;i++)
@@ -245,11 +245,12 @@ vec2 SteepParallaxMapping(vec2 uv,vec3 viewDir)
 		currentDepthMapValue = texture(crateDisp,currentTexCoords).r;
 		currentLayerDepth+= layerDepth;
 	}
-	vec2 prevTexCoords= currentTexCoords +deltaTexCoords;
 
+	vec2 prevTexCoords= currentTexCoords +deltaTexCoords;
+	
 	float postDepth=currentDepthMapValue -currentLayerDepth;
 	float preDepth=texture(crateDisp,prevTexCoords).r -currentLayerDepth +layerDepth;
-
+	
 	float weight=postDepth /(postDepth - preDepth);
 	vec2 finalCoords= prevTexCoords *weight +currentTexCoords*(1.0 - weight);
 	return finalCoords;

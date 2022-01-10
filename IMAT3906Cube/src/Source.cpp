@@ -32,21 +32,20 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 unsigned int loadTexture(const char* path);
-void loadTextureFiles();
-void setFBOcolour();
-void setFBODepth();
-void setFBOcolourAndDepth();
-void setFBOblur();
-void setShadowMapFBO();
-void createQuad();
-void drawQuad(Shader& shader, unsigned int textureObj);
-void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj);
-void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj,unsigned int depth);
-void setShader(Shader& shader);
-void renderCubes(Shader& shader);
-void renderPlane(Shader& shader);
-void renderScene(Shader& shader, Shader& floorShader, Shader& skyBoxShader, Camera& cam);
-void pointShadowCubeMap();
+void loadTextureFiles(); //load texutures 
+void setFBOcolour(); //sets a colour FBO
+void setFBODepth(); //sets a Depth FBO
+void setFBOcolourAndDepth(); //Sets a FBO for both colour and depth
+void setFBOblur(); //sets the blur FBO
+void setShadowMapFBO(); //sets the shadow FBO
+void createQuad(); //creates a quad that is used for drawing post processing effects
+void drawQuad(Shader& shader, unsigned int textureObj); //draws a quad using an attachment and a shader
+void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj);//draws a quad using 2 attachments and a shader
+void drawQuad(Shader& shader, unsigned int textureObj, unsigned int Texobj,unsigned int depth);//draws a quad 2 colour attachments and a depth attachment and a shader
+void setShader(Shader& shader); //sets uniforms for the shaders
+void renderCubes(Shader& shader); //renders cubes
+void renderPlane(Shader& shader); //renders planes
+void renderScene(Shader& shader, Shader& floorShader, Shader& skyBoxShader, Camera& cam); //renders the whole scene
 // camera
 Camera camera(glm::vec3(0,0,9));
 float lastX = SCR_WIDTH / 2.0f;
@@ -54,12 +53,12 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 SkyBox skybox;
 //arrays
-unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,FBO_cAndD,FBO_blur,colourAttachment,cAttachment[2],depthAttachment,blurredTex,shadowMapFBO,shadowMap,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp;
-const unsigned int shadowWidth = 1024, shadowHeight = 1024;
-unsigned int depthCubeMap;
+unsigned int floorVBO, cubeVBO, floorEBO, cubeEBO, cubeVAO, floorVAO,myFBO,FBO_depth,FBO_cAndD,FBO_blur,colourAttachment,cAttachment[2],depthAttachment,blurredTex,shadowMapFBO,shadowMap,quadVAO,quadVBO, crateTex,crateSpec,crateNorm,crateDisp, floorTex,floorSpec,floorNorm,floorDisp; //bunch of unsigned ints for textures, attachments,VAO,VBO,EBO's
+const unsigned int shadowWidth = 1024, shadowHeight = 1024; //shadow map size
 
-normalMapper normalCubeMap;
-normalMapper normalFloorMap;
+
+normalMapper normalCubeMap; //calc for cube normal map
+normalMapper normalFloorMap; //calc for floor normal map
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -384,7 +383,7 @@ int main()
 		
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
-		drawQuad(bloomShader, cAttachment[0], blurredTex);
+		//drawQuad(bloomShader, cAttachment[0], blurredTex);
 		renderScene(shader, floorShader, sbShader, camera);
 
 		
@@ -475,7 +474,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -520,9 +518,6 @@ unsigned int loadTexture(const char* path)
 	}
 	return textureID;
 }
-
-
-
 
 void loadTextureFiles()
 {
@@ -880,17 +875,3 @@ void renderScene(Shader& shader, Shader& floorShader, Shader& skyBoxShader, Came
 	renderCubes(shader);
 	renderPlane(floorShader);
 }
-
-void pointShadowCubeMap()
-{
-	for (unsigned int i = 0; i < 6; i++)
-	{
-		GLenum face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, face, depthCubeMap,0);
-		
-	}
-
-	
-}
-
-
